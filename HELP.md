@@ -11,3 +11,9 @@ This module connects to Cisco Webex devices
 * Mute/Unmute Microphones
 * Music mode on/off
 * Noise removal on/off
+
+### Presentation
+* Start/Stop
+
+### Camera
+* Activate preset

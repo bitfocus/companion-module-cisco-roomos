@@ -88,12 +88,9 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 
 	private processJSON(msg: WebexMessage): void {
 		let message = JSON.parse(msg.toString())
-		// console.log(':>> ', message)
 		if (message.method == 'xFeedback/Event') {
-			// console.log('Feedback :>> ', message.params)
 			if (message.params.Status != undefined) {
 				let status = message.params.Status
-
 				if (status.Audio != undefined) {
 					if (status.Audio.SelectedDevice != null) this.setVariable('selected_device', status.Audio.SelectedDevice)
 					if (status.Audio.Volume != null) this.setVariable('volume', status.Audio.Volume)
@@ -133,16 +130,6 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 			}
 		} else {
 			console.log('message:', message)
-			switch (message.id) {
-				case '0':
-					//Custom
-					console.log('message:', message)
-					break
-				case '1':
-					//Dial
-					this.CallId = message.result.CallId
-					break
-			}
 		}
 	}
 	/**
