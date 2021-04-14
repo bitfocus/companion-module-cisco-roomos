@@ -30,7 +30,10 @@ export enum ActionId {
 	SelfView = 'self_view',
 	OSDKeyClick = 'OSD_key_click',
 	OSDKeyPress = 'OSD_key_press',
-	OSDKeyRelease = 'OSD_key_release'
+	OSDKeyRelease = 'OSD_key_release',
+	CameraBackground = 'camera_background',
+	VideoMonitors = 'video_monitors',
+	VideoOutputMonitorRole = 'video_output_monitor_role'
 }
 
 function WebexOnOffBooleanDropdown(id: string, label: string): CompanionInputFieldDropdown {
@@ -53,55 +56,55 @@ function WebexOnOffBooleanDropdown(id: string, label: string): CompanionInputFie
 }
 function RemoteKeyToPressDropdown(): CompanionInputFieldDropdown {
 	return {
-		id : 'Key',
+		id: 'Key',
 		label: 'Key',
 		type: 'dropdown',
 		default: 'Home',
 		choices: [
-			{	label: '0', id: '0'	},
-			{	label: '1', id: '1'	},
-			{	label: '2', id: '2'	},
-			{	label: '3', id: '3'	},
-			{	label: '4', id: '4'	},
-			{	label: '5', id: '5'	},
-			{	label: '6', id: '6'	},
-			{	label: '7', id: '7'	},
-			{	label: '8', id: '8'	},
-			{	label: '9', id: '9'	},
-			{	label: 'C', id: 'C'	},
-			{	label: 'Call', id: 'Call'	},
-			{	label: 'Disconnect', id: 'Disconnect'	},
-			{	label: 'Down', id: 'Down'	},
-			{	label: 'F1', id: 'F1'	},
-			{	label: 'F2', id: 'F2'	},
-			{	label: 'F3', id: 'F3'	},
-			{	label: 'F4', id: 'F4'	},
-			{	label: 'F5', id: 'F5'	},
-			{	label: 'Grab', id: 'Grab'	},
-			{	label: 'Home', id: 'Home'	},
-			{	label: 'Layout', id: 'Layout'	},
-			{	label: 'Left', id: 'Left'	},
-			{	label: 'Mute', id: 'Mute'	},
-			{	label: 'MuteMic', id: 'MuteMic'	},
-			{	label: 'Ok', id: 'Ok'	},
-			{	label: 'PhoneBook', id: 'PhoneBook'	},
-			{	label: 'Presentation', id: 'Presentation'	},
-			{	label: 'Right', id: 'Right'	},
-			{	label: 'Selfview', id: 'Selfview'	},
-			{	label: 'Square', id: 'Square'	},
-			{	label: 'SrcAux', id: 'SrcAux'	},
-			{	label: 'SrcCamera', id: 'SrcCamera'	},
-			{	label: 'SrcDocCam', id: 'SrcDocCam'	},
-			{	label: 'SrcPc', id: 'SrcPc'	},
-			{	label: 'SrcVcr', id: 'SrcVcr'	},
-			{	label: 'Star', id: 'Star'	},
-			{	label: 'Up', id: 'Up'	},
-			{	label: 'VolumeUp', id: 'VolumeUp'	},
-			{	label: 'VolumeDown', id: 'VolumeDown'	},
-			{	label: 'ZoomIn', id: 'ZoomIn'	},
-			{	label: 'ZoomOut', id: 'ZoomOut'	},
-			{	label: '+', id: '+'	},
-			{	label: '-', id: '-'	}
+			{ label: '0', id: '0' },
+			{ label: '1', id: '1' },
+			{ label: '2', id: '2' },
+			{ label: '3', id: '3' },
+			{ label: '4', id: '4' },
+			{ label: '5', id: '5' },
+			{ label: '6', id: '6' },
+			{ label: '7', id: '7' },
+			{ label: '8', id: '8' },
+			{ label: '9', id: '9' },
+			{ label: 'C', id: 'C' },
+			{ label: 'Call', id: 'Call' },
+			{ label: 'Disconnect', id: 'Disconnect' },
+			{ label: 'Down', id: 'Down' },
+			{ label: 'F1', id: 'F1' },
+			{ label: 'F2', id: 'F2' },
+			{ label: 'F3', id: 'F3' },
+			{ label: 'F4', id: 'F4' },
+			{ label: 'F5', id: 'F5' },
+			{ label: 'Grab', id: 'Grab' },
+			{ label: 'Home', id: 'Home' },
+			{ label: 'Layout', id: 'Layout' },
+			{ label: 'Left', id: 'Left' },
+			{ label: 'Mute', id: 'Mute' },
+			{ label: 'MuteMic', id: 'MuteMic' },
+			{ label: 'Ok', id: 'Ok' },
+			{ label: 'PhoneBook', id: 'PhoneBook' },
+			{ label: 'Presentation', id: 'Presentation' },
+			{ label: 'Right', id: 'Right' },
+			{ label: 'Selfview', id: 'Selfview' },
+			{ label: 'Square', id: 'Square' },
+			{ label: 'SrcAux', id: 'SrcAux' },
+			{ label: 'SrcCamera', id: 'SrcCamera' },
+			{ label: 'SrcDocCam', id: 'SrcDocCam' },
+			{ label: 'SrcPc', id: 'SrcPc' },
+			{ label: 'SrcVcr', id: 'SrcVcr' },
+			{ label: 'Star', id: 'Star' },
+			{ label: 'Up', id: 'Up' },
+			{ label: 'VolumeUp', id: 'VolumeUp' },
+			{ label: 'VolumeDown', id: 'VolumeDown' },
+			{ label: 'ZoomIn', id: 'ZoomIn' },
+			{ label: 'ZoomOut', id: 'ZoomOut' },
+			{ label: '+', id: '+' },
+			{ label: '-', id: '-' }
 		]
 	}
 }
@@ -418,7 +421,12 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 			{
 				label: 'Lens',
 				type: 'dropdown',
-				choices: [{label: 'Wide', id: 'Wide'},{label: 'Center', id: 'Center'},{label: 'Left', id: 'Left'},{label: 'Center', id: 'Center'}],
+				choices: [
+					{ label: 'Wide', id: 'Wide' },
+					{ label: 'Center', id: 'Center' },
+					{ label: 'Left', id: 'Left' },
+					{ label: 'Center', id: 'Center' }
+				],
 				default: 'Center',
 				id: 'Lens'
 			},
@@ -456,7 +464,7 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 			}
 		]
 	}
-	actions[ActionId.VideoMatrixReset] ={
+	actions[ActionId.VideoMatrixReset] = {
 		label: 'Video Matrix Reset',
 		options: [
 			{
@@ -469,7 +477,7 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 			}
 		]
 	}
-	actions[ActionId.TriggerAutofocus] ={
+	actions[ActionId.TriggerAutofocus] = {
 		label: 'Camera trigger auto focus',
 		options: [
 			{
@@ -496,7 +504,11 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 			{
 				label: 'Pan',
 				type: 'dropdown',
-				choices: [{label: 'Left', id: 'Left'},{label: 'Right', id: 'Right'},{label: 'Stop', id: 'Stop'}],
+				choices: [
+					{ label: 'Left', id: 'Left' },
+					{ label: 'Right', id: 'Right' },
+					{ label: 'Stop', id: 'Stop' }
+				],
 				default: 'Stop',
 				id: 'Pan'
 			},
@@ -511,7 +523,11 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 			{
 				label: 'Tilt',
 				type: 'dropdown',
-				choices: [{label: 'Down', id: 'Down'},{label: 'Up', id: 'Up'},{label: 'Stop', id: 'Stop'}],
+				choices: [
+					{ label: 'Down', id: 'Down' },
+					{ label: 'Up', id: 'Up' },
+					{ label: 'Stop', id: 'Stop' }
+				],
 				default: 'Stop',
 				id: 'Tilt'
 			},
@@ -526,7 +542,11 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 			{
 				label: 'Zoom',
 				type: 'dropdown',
-				choices: [{label: 'In', id: 'In'},{label: 'Out', id: 'Out'},{label: 'Stop', id: 'Stop'}],
+				choices: [
+					{ label: 'In', id: 'In' },
+					{ label: 'Out', id: 'Out' },
+					{ label: 'Stop', id: 'Stop' }
+				],
 				default: 'Stop',
 				id: 'Zoom'
 			},
@@ -541,7 +561,11 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 			{
 				label: 'Focus',
 				type: 'dropdown',
-				choices: [{label: 'Far', id: 'Far'},{label: 'Near', id: 'Near'},{label: 'Stop', id: 'Stop'}],
+				choices: [
+					{ label: 'Far', id: 'Far' },
+					{ label: 'Near', id: 'Near' },
+					{ label: 'Stop', id: 'Stop' }
+				],
 				default: 'Stop',
 				id: 'Focus'
 			}
@@ -585,7 +609,7 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 	}
 	actions[ActionId.SelfView] = {
 		label: 'Video: Self view',
-		options: [ 
+		options: [
 			WebexOnOffBooleanDropdown('Mode', 'Mode'),
 			WebexOnOffBooleanDropdown('FullscreenMode', 'FullscreenMode'),
 			{
@@ -624,6 +648,91 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 	actions[ActionId.OSDKeyRelease] = {
 		label: 'OSD Key Release',
 		options: [RemoteKeyToPressDropdown()]
+	}
+	actions[ActionId.CameraBackground] = {
+		label: 'Set Camera background',
+		options: [
+			{
+				label: 'Image',
+				id: 'Image',
+				type: 'dropdown',
+				choices: [
+					{ id: 'Image1', label: 'Image1' },
+					{ id: 'Image2', label: 'Image2' },
+					{ id: 'Image3', label: 'Image3' },
+					{ id: 'Image4', label: 'Image4' },
+					{ id: 'Image5', label: 'Image5' },
+					{ id: 'Image6', label: 'Image6' },
+					{ id: 'Image7', label: 'Image7' },
+					{ id: 'User1', label: 'User1' },
+					{ id: 'User2', label: 'User2' },
+					{ id: 'User3', label: 'User3' }
+				],
+				default: 'Image1'
+			},
+			{
+				label: 'Mode',
+				id: 'Mode',
+				type: 'dropdown',
+				choices: [
+					{ id: 'Disabled', label: 'Disabled' },
+					{ id: 'Blur', label: 'Blur' },
+					{ id: 'BlurMonochrome', label: 'BlurMonochrome' },
+					{ id: 'DepthOfField', label: 'DepthOfField' },
+					{ id: 'Hdmi', label: 'Hdmi' },
+					{ id: 'Monochrome', label: 'Monochrome' },
+					{ id: 'Image', label: 'Image' },
+					{ id: 'UsbC', label: 'UsbC' }
+				],
+				default: 'Image'
+			}
+		]
+	}
+	actions[ActionId.VideoMonitors] = {
+		label: 'Monitor role',
+		options: [
+			{
+				label: 'Monitors',
+				id: 'Monitors',
+				type: 'dropdown',
+				choices: [
+					{ id: 'Auto', label: 'Auto' },
+					{ id: 'Single', label: 'Single' },
+					{ id: 'Dual', label: 'Dual' },
+					{ id: 'DualPresentationOnly', label: 'DualPresentationOnly' },
+					{ id: 'TriplePresentationOnly', label: 'TriplePresentationOnly' },
+					{ id: 'Triple', label: 'Triple' }
+				],
+				default: 'Auto'
+			}
+		]
+	}
+	actions[ActionId.VideoOutputMonitorRole] = {
+		label: 'Set output connector monitor role',
+		options: [
+			{
+				label: 'Connector',
+				id: 'Connector',
+				default: 1,
+				type: 'number',
+				min: 1,
+				max: 3
+			},
+			{
+				label: 'MonitorRole',
+				id: 'MonitorRole',
+				type: 'dropdown',
+				choices: [
+					{ id: 'Auto', label: 'Auto' },
+					{ id: 'First', label: 'First' },
+					{ id: 'Second', label: 'Second' },
+					{ id: 'Third', label: 'Third' },
+					{ id: 'PresentationOnly', label: 'PresentationOnly' },
+					{ id: 'Recorder', label: 'Recorder' }
+				],
+				default: 'Auto'
+			}
+		]
 	}
 	return actions
 }
@@ -773,11 +882,11 @@ export async function HandleAction(
 				command.method = 'xCommand/Video/Input/SetMainVideoSource'
 				command.params = {
 					ConnectorId: connectorId,
-					Layout:	opt.Layout,
+					Layout: opt.Layout,
 					PIPPosition: opt.PIPPosition,
 					PIPSize: opt.PIPSize,
 					SourceId: sourceId
-					}
+				}
 				break
 			}
 			case ActionId.CameraPositionSet: {
@@ -797,8 +906,8 @@ export async function HandleAction(
 					Pan: pan,
 					Roll: roll,
 					Tilt: tilt,
-					Zoom: zoom,
-					}
+					Zoom: zoom
+				}
 				break
 			}
 			case ActionId.VideoMatrixReset: {
@@ -823,7 +932,7 @@ export async function HandleAction(
 
 				command.id = '132'
 				command.method = 'xCommand/Camera/Ramp'
-				command.params = { 
+				command.params = {
 					CameraId: cameraId,
 					Pan: opt.Pan,
 					PanSpeed: panSpeed,
@@ -839,10 +948,10 @@ export async function HandleAction(
 				const callId = parseInt(String(opt.CallId))
 				command.id = '133'
 				command.method = 'xCommand/Call/DTMFSend'
-				command.params = { 
+				command.params = {
 					CallId: callId,
 					DTMFString: opt.DTMFString
-				 }
+				}
 				break
 			}
 			case ActionId.ConferenceDoNotDisturbActivate: {
@@ -892,6 +1001,28 @@ export async function HandleAction(
 				command.params = {
 					Key: opt.Key
 				}
+				break
+			}
+			case ActionId.CameraBackground: {
+				command.id = '140'
+				command.method = 'xCommand/Cameras/Background/Set'
+				command.params = {
+					Image: opt.Image,
+					Mode: opt.Mode
+				}
+				break
+			}
+			case ActionId.VideoMonitors: {
+				command.id = '141'
+				command.method = 'xSet'
+				command.params = { Path: ['Configuration', 'Video', 'Monitors'], Value: opt.Monitors }
+				break
+			}
+			case ActionId.VideoOutputMonitorRole: {
+				const connector = parseInt(String(opt.Connector))
+				command.id = '142'
+				command.method = 'xSet'
+				command.params = { Path: ['Configuration', 'Video', 'Output', 'Connector', connector, 'MonitorRole'], Value: opt.MonitorRole }
 				break
 			}
 		}
