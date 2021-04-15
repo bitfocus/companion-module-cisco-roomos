@@ -80,13 +80,19 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 					method: 'xFeedback/Subscribe',
 					params: { Query: ['Status', 'Conference'], NotifyCurrentValue: true }
 				}
-				// params: { Query: ['Status', 'Conference', 'DoNotDisturb'], NotifyCurrentValue: true }
+				let enableFeedbackMainVideoSource = {
+					jsonrpc: '2.0',
+					id: '118',
+					method: 'xFeedback/Subscribe',
+					params: { Query: ['Status', 'Video', 'Input', 'MainVideoSource'], NotifyCurrentValue: true }
+				}
 
 				this.websocket?.send(JSON.stringify(enableFeedbackConfiguration))
 				this.websocket?.send(JSON.stringify(enableFeedbackTime))
 				this.websocket?.send(JSON.stringify(enableFeedbackCall))
 				this.websocket?.send(JSON.stringify(enableFeedbackAudio))
 				this.websocket?.send(JSON.stringify(enableFeedbackDoNotDisturb))
+				this.websocket?.send(JSON.stringify(enableFeedbackMainVideoSource))
 			})
 			this.websocket.on('message', (data: WebexMessage) => {
 				this.processJSON(data)
@@ -126,14 +132,12 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 					if (status.Audio.Microphones != undefined && status.Audio.Microphones.Mute != undefined)
 						this.setVariable('microphones_mute', status.Audio.Microphones.Mute)
 				}
-
 				else if (status.Call != undefined) {
 					status.Call.forEach((call: WebexCall) => {
 						this.ongoingCalls.push(call)
 					})
 					console.log(this.ongoingCalls)
 				}
-
 				else if (status.Time != undefined) {
 					if (status.Time.SystemTime != null) {
 						// let dateTime = new Date(status.Time.SystemTime)
@@ -152,7 +156,15 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 						this.setVariable('SelectedCallProtocol', status.Conference.SelectedCallProtocol)
 					}
 				}
-
+				else if (status.Video != undefined && status.Video.Input != undefined) {
+					console.log('status video input:',status.Video.Input);
+					if (status.Video.Input.MainVideoSource != null) {
+						this.setVariable('MainVideoSource', status.Video.Input.MainVideoSource)
+					}
+					// if (status.Video.Input.Source [n] ConnectorId != null) {
+					// 	this.setVariable('Source [n] ConnectorId', status.Video.Input.Source [n] ConnectorId)
+					// }
+				}
 				else {
 					console.log('feedback:',status);
 				}

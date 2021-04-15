@@ -1,6 +1,6 @@
 import { WebexInstanceSkel } from './webex'
 
-import { CompanionActionEvent, CompanionActions, CompanionInputFieldDropdown } from '../../../instance_skel_types'
+import { CompanionActionEvent, CompanionActions, CompanionInputFieldDropdown, CompanionInputFieldNumber } from '../../../instance_skel_types'
 import { DeviceConfig } from './config'
 
 export enum ActionId {
@@ -110,6 +110,26 @@ function RemoteKeyToPressDropdown(): CompanionInputFieldDropdown {
 			{ label: '+', id: '+' },
 			{ label: '-', id: '-' }
 		]
+	}
+}
+function ConnectorIdNumber(): CompanionInputFieldNumber {
+	return {
+		label: 'ConnectorId',
+		id: 'ConnectorId',
+		default: 1,
+		type: 'number',
+		min: 1,
+		max: 8
+	}
+}
+function SourceIdNumber(): CompanionInputFieldNumber {
+	return {
+		label: 'SourceId',
+		id: 'SourceId',
+		default: 1,
+		type: 'number',
+		min: 1,
+		max: 255
 	}
 }
 
@@ -255,15 +275,7 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 					{ id: 'Stop', label: 'Stop' }
 				],
 				default: 'Start'
-			},
-			{
-				label: 'ConnectorId',
-				id: 'ConnectorId',
-				default: 1,
-				type: 'number',
-				min: 1,
-				max: 8
-			},
+			}, ConnectorIdNumber(),
 			{
 				label: 'Instance',
 				id: 'Instance',
@@ -346,14 +358,7 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				min: 1,
 				max: 4
 			},
-			{
-				label: 'SourceId',
-				id: 'SourceId',
-				default: 1,
-				type: 'number',
-				min: 1,
-				max: 255
-			}
+			SourceIdNumber()
 		]
 	}
 	actions[ActionId.CameraPreset] = {
@@ -372,14 +377,7 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 	actions[ActionId.SetMainVideoSource] = {
 		label: 'Set Main Video Source',
 		options: [
-			{
-				label: 'ConnectorId',
-				id: 'ConnectorId',
-				default: 1,
-				type: 'number',
-				min: 1,
-				max: 255
-			},
+			ConnectorIdNumber(),
 			{
 				label: 'Layout',
 				id: 'Layout',
@@ -413,14 +411,7 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				],
 				default: 'Auto'
 			},
-			{
-				label: 'SourceId',
-				id: 'SourceId',
-				default: 1,
-				type: 'number',
-				min: 1,
-				max: 255
-			}
+			SourceIdNumber()
 		]
 	}
 	actions[ActionId.CameraPositionSet] = {
