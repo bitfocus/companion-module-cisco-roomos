@@ -49,6 +49,22 @@ export function InitVariables(instance: InstanceSkel<DeviceConfig>): void {
 		label: 'Audio: Microphones Mute',
 		name: 'microphones_mute'
 	})
+	variables.push({
+		label: 'Audio: connectors mute',
+		name: 'audio_connector_mute'
+	})
+	variables.push({
+		label: 'Conference: Do not disturb',
+		name: 'DoNotDisturb'
+	})
+	variables.push({
+		label: 'Conference: Presentation',
+		name: 'Presentation'
+	})
+	variables.push({
+		label: 'Conference: SelectedCallProtocol',
+		name: 'SelectedCallProtocol'
+	})
 
 	// instance.setVariable('outgoing_calls', '0')
 	// instance.setVariable('ingoing_calls', '0')

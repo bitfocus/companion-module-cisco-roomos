@@ -7,6 +7,15 @@ import { InitVariables } from './variables'
 
 // DEBUG ONLY!!!!!!
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+// interface connector {
+// 	id: string,
+// 	Mute: string
+// }
+
+// interface connector {
+// 	id: number; Mute: string; key: any
+// }
+// interface connector extends Array<connector>{}
 
 class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 	// private socket: Socket | undefined
@@ -65,11 +74,19 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 					method: 'xFeedback/Subscribe',
 					params: { Query: ['Status', 'Audio'], NotifyCurrentValue: true }
 				}
+				let enableFeedbackDoNotDisturb = {
+					jsonrpc: '2.0',
+					id: '117',
+					method: 'xFeedback/Subscribe',
+					params: { Query: ['Status', 'Conference'], NotifyCurrentValue: true }
+				}
+				// params: { Query: ['Status', 'Conference', 'DoNotDisturb'], NotifyCurrentValue: true }
 
 				this.websocket?.send(JSON.stringify(enableFeedbackConfiguration))
 				this.websocket?.send(JSON.stringify(enableFeedbackTime))
 				this.websocket?.send(JSON.stringify(enableFeedbackCall))
 				this.websocket?.send(JSON.stringify(enableFeedbackAudio))
+				this.websocket?.send(JSON.stringify(enableFeedbackDoNotDisturb))
 			})
 			this.websocket.on('message', (data: WebexMessage) => {
 				this.processJSON(data)
@@ -93,6 +110,16 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 				let status = message.params.Status
 				if (status.Audio != undefined) {
 					if (status.Audio.SelectedDevice != null) this.setVariable('selected_device', status.Audio.SelectedDevice)
+
+					if (status.Audio.Input !=undefined && status.Audio.Input.Connectors != undefined && status.Audio.Input.Connectors.Microphone != undefined) {
+						let muteState = ''
+						for (let index = 0; index < status.Audio.Input.Connectors.Microphone.length; index++) {
+							const element = status.Audio.Input.Connectors.Microphone[index];
+							muteState += `(Mic ${element.id} Mute: ${element.Mute})`
+							this.connectorMute[element.id] = element.Mute
+						}
+						this.setVariable('audio_connector_mute', muteState)
+					}
 					if (status.Audio.Volume != null) this.setVariable('volume', status.Audio.Volume)
 					if (status.Audio.Microphones != undefined && status.Audio.Microphones.MusicMode != undefined)
 						this.setVariable('microphones_musicmode', status.Audio.Microphones.MusicMode)
@@ -100,19 +127,34 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 						this.setVariable('microphones_mute', status.Audio.Microphones.Mute)
 				}
 
-				if (status.Call != undefined) {
+				else if (status.Call != undefined) {
 					status.Call.forEach((call: WebexCall) => {
 						this.ongoingCalls.push(call)
 					})
 					console.log(this.ongoingCalls)
 				}
 
-				if (status.Time != undefined) {
+				else if (status.Time != undefined) {
 					if (status.Time.SystemTime != null) {
 						// let dateTime = new Date(status.Time.SystemTime)
 						// let showMsg = `${dateTime.getHours}:${dateTime.getMinutes} ${dateTime.getDay}-${dateTime.getMonth}-${dateTime.getFullYear}`
 						this.setVariable('systemtime', status.Time.SystemTime)
 					}
+				}
+				else if (status.Conference != undefined) {
+					if (status.Conference.DoNotDisturb != null) {
+						this.setVariable('DoNotDisturb', status.Conference.DoNotDisturb)
+					}
+					if (status.Conference.Presentation != null) {
+						this.setVariable('Presentation', status.Conference.Presentation)
+					}
+					if (status.Conference.SelectedCallProtocol != null) {
+						this.setVariable('SelectedCallProtocol', status.Conference.SelectedCallProtocol)
+					}
+				}
+
+				else {
+					console.log('feedback:',status);
 				}
 			}
 			if (

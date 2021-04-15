@@ -4,7 +4,8 @@ import { CompanionActionEvent, CompanionActions, CompanionInputFieldDropdown } f
 import { DeviceConfig } from './config'
 
 export enum ActionId {
-	Custom = 'custom',
+	CustomConfiguration = 'custom_configuration',
+	CustomCommand = 'custom_configuration',
 	Dial = 'dial',
 	Disconnect = 'disconnect',
 	Accept = 'accept',
@@ -33,7 +34,10 @@ export enum ActionId {
 	OSDKeyRelease = 'OSD_key_release',
 	CameraBackground = 'camera_background',
 	VideoMonitors = 'video_monitors',
-	VideoOutputMonitorRole = 'video_output_monitor_role'
+	VideoOutputMonitorRole = 'video_output_monitor_role',
+	MessageSend = 'message_send',
+	StandbyControl = 'standby_control',
+	StandbyDelay = 'standby_control'
 }
 
 function WebexOnOffBooleanDropdown(id: string, label: string): CompanionInputFieldDropdown {
@@ -112,23 +116,43 @@ function RemoteKeyToPressDropdown(): CompanionInputFieldDropdown {
 export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): CompanionActions {
 	const actions: CompanionActions = {}
 
-	actions[ActionId.Custom] = {
-		label: 'Custom',
+	actions[ActionId.CustomConfiguration] = {
+		label: 'Custom xConfiguration',
 		options: [
 			{
 				type: 'textinput',
-				label: 'method',
-				id: 'method',
-				default: 'xGet',
+				label: 'Path (split items with ,)',
+				id: 'path',
+				default: 'Configuration,Conference,AutoAnswer',
 				regex: self.REGEX_SOMETHING
 			},
 			{
 				type: 'textinput',
-				label: 'path (split items with ,)',
-				id: 'path',
-				default: 'Configuration,Conference,AutoAnswer',
+				label: 'Value',
+				id: 'Value',
+				default: '',
 				regex: self.REGEX_SOMETHING
 			}
+		]
+	}
+	actions[ActionId.CustomCommand] = {
+		label: 'Custom xCommand',
+		options: [
+			{
+				type: 'textinput',
+				label: 'Method',
+				id: 'Method',
+				default: 'xCommand/...',
+				regex: self.REGEX_SOMETHING
+			},
+			{
+				type: 'textinput',
+				label: 'Params (Put in JSON)',
+				id: 'Params',
+				default: '{Key:Value}',
+				regex: self.REGEX_SOMETHING
+			},
+
 		]
 	}
 	actions[ActionId.Dial] = {
@@ -734,6 +758,34 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 			}
 		]
 	}
+	actions[ActionId.MessageSend] = {
+		label: 'Send message to any listening client',
+		options: [
+			{
+				label: 'Text',
+				type: 'textinput',
+				id: 'Text',
+				default: ''
+			}
+		]
+	}
+	actions[ActionId.StandbyControl] = {
+		label: 'Device standby',
+		options: [WebexOnOffBooleanDropdown('Standby', 'Standby')]
+	}
+	actions[ActionId.StandbyControl] = {
+		label: 'Set Standby Delay',
+		options: [
+			{
+				label: 'Delay in minutes',
+				type: 'number',
+				min: 1,
+				max: 480,
+				id: 'Delay',
+				default: 10
+			}
+		]
+	}
 	return actions
 }
 
@@ -753,10 +805,16 @@ export async function HandleAction(
 		}
 
 		switch (actionId) {
-			case ActionId.Custom: {
+			case ActionId.CustomConfiguration: {
 				command.id = '0'
-				command.method = opt.method!.toString()
-				command.params = { Path: opt.path?.toString().split(',') }
+				command.method = 'xSet'
+				command.params = { Path: opt.path?.toString().split(','), Value: opt.Value }
+				break
+			}
+			case ActionId.CustomCommand: {
+				command.id = '0'
+				command.method = String(opt.Method)
+				command.params = JSON.parse(String(opt.Params)) 
 				break
 			}
 			case ActionId.Dial: {
@@ -1023,6 +1081,27 @@ export async function HandleAction(
 				command.id = '142'
 				command.method = 'xSet'
 				command.params = { Path: ['Configuration', 'Video', 'Output', 'Connector', connector, 'MonitorRole'], Value: opt.MonitorRole }
+				break
+			}
+			case ActionId.MessageSend: {
+				command.id = '143'
+				command.method = 'xCommand/Message/Send'
+				command.params = {
+					Text: opt.Text
+				}
+				break
+			}
+			case ActionId.StandbyControl: {
+				command.id = '144'
+				command.method = 'xSet'
+				command.params = { Path: ['xConfiguration', 'Standby', 'Control'], Value: opt.Standby}
+				break
+			}
+			case ActionId.StandbyDelay: {
+				const delay = parseInt(String(opt.Delay))
+				command.id = '145'
+				command.method = 'xSet'
+				command.params = { Path: ['xConfiguration', 'Standby', 'Delay'], Value: delay}
 				break
 			}
 		}

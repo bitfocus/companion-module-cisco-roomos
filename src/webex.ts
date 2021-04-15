@@ -2,6 +2,12 @@ import InstanceSkel = require('../../../instance_skel')
 import WebSocket = require("ws");
 // import { FeedbackId } from './feedback'
 
+interface connector {
+	id: string,
+	Mute: string
+}
+
+
 export enum WebexBoolean {
 	True = 'True',
 	False = 'False'
@@ -47,6 +53,7 @@ export abstract class WebexInstanceSkel<T> extends InstanceSkel<T> {
 	public websocket?: WebSocket
 	public CallId!: string;
 	public ongoingCalls: WebexCall[] = []
+	public connectorMute: connector[] = []
 	public hasIngoingCall = false
 	public hasRingingCall = false
 	public hasOutgoingCall = false
