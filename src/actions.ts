@@ -5,7 +5,7 @@ import { DeviceConfig } from './config'
 
 export enum ActionId {
 	CustomConfiguration = 'custom_configuration',
-	CustomCommand = 'custom_configuration',
+	CustomCommand = 'custom_command',
 	Dial = 'dial',
 	Disconnect = 'disconnect',
 	Accept = 'accept',

@@ -11,7 +11,8 @@ export enum FeedbackId {
 	Ringing = 'ringing',
 	HasIngoingCall = 'hasingoingcall',
 	HasOutgoingCall = 'hasoutgoingcall',
-	AutoAnswer = 'autoanswer'
+	AutoAnswer = 'autoanswer',
+	MicrophoneMute = 'microphonemute'
 }
 
 export function ForegroundPicker(color: number): CompanionInputFieldColor {
@@ -134,6 +135,12 @@ export function GetFeedbacksList(instance: WebexInstanceSkel<DeviceConfig>): Com
 		label: 'Change colors if device is set to auto-answer calls',
 		description: 'If the device is set to auto-answer, change colors of the bank',
 		options: [ForegroundPicker(instance.rgb(0, 0, 0)), BackgroundPicker(instance.rgb(255, 255, 255))]
+	}
+
+	feedbacks[FeedbackId.MicrophoneMute] = {
+		label: 'Change colors if microphone is set mute',
+		description: 'If the microphone is set mute, change colors of the bank',
+		options: [ForegroundPicker(instance.rgb(0, 0, 0)), BackgroundPicker(instance.rgb(255, 0, 0))]
 	}
 
 	return feedbacks
