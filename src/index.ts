@@ -1,7 +1,12 @@
 import { WebexCall, WebexInstanceSkel, WebexMessage } from './webex'
 import WebSocket = require('ws')
-import { CompanionActionEvent, CompanionConfigField, CompanionSystem,	CompanionFeedbackEvent,
-	CompanionFeedbackResult } from '../../../instance_skel_types'
+import {
+	CompanionActionEvent,
+	CompanionConfigField,
+	CompanionSystem,
+	CompanionFeedbackEvent,
+	CompanionFeedbackResult
+} from '../../../instance_skel_types'
 import { GetActionsList, HandleAction } from './actions'
 import { DeviceConfig, GetConfigFields } from './config'
 import { ExecuteFeedback, FeedbackId, GetFeedbacksList } from './feedback'
@@ -117,10 +122,14 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 				if (status.Audio != undefined) {
 					if (status.Audio.SelectedDevice != null) this.setVariable('selected_device', status.Audio.SelectedDevice)
 
-					if (status.Audio.Input !=undefined && status.Audio.Input.Connectors != undefined && status.Audio.Input.Connectors.Microphone != undefined) {
+					if (
+						status.Audio.Input != undefined &&
+						status.Audio.Input.Connectors != undefined &&
+						status.Audio.Input.Connectors.Microphone != undefined
+					) {
 						let muteState = ''
 						for (let index = 0; index < status.Audio.Input.Connectors.Microphone.length; index++) {
-							const element = status.Audio.Input.Connectors.Microphone[index];
+							const element = status.Audio.Input.Connectors.Microphone[index]
 							muteState += `(Mic ${element.id} Mute: ${element.Mute})`
 							this.connectorMute[element.id] = element.Mute
 						}
@@ -131,8 +140,7 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 						this.setVariable('microphones_musicmode', status.Audio.Microphones.MusicMode)
 					if (status.Audio.Microphones != undefined && status.Audio.Microphones.Mute != undefined)
 						this.setVariable('microphones_mute', status.Audio.Microphones.Mute)
-				}
-				else if (status.Call != undefined) {
+				} else if (status.Call != undefined) {
 					this.ongoingCalls.length = 0
 					let outgoing = 0
 					let incoming = 0
@@ -140,39 +148,37 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 
 					status.Call.forEach((call: WebexCall) => {
 						this.ongoingCalls.push(call)
-						if(call.Direction == 'Outgoing') {
-							outgoing ++
-						} 
-						if(call.Direction == 'Incoming') {
-							incoming ++
-						} 
-						if(call.Status == 'Ringing') {
-							incoming_ringing ++
+						if (call.Direction == 'Outgoing') {
+							outgoing++
+						}
+						if (call.Direction == 'Incoming') {
+							incoming++
+						}
+						if (call.Status == 'Ringing') {
+							incoming_ringing++
 						}
 						this.setVariable('outgoing_calls', outgoing.toString())
 						this.setVariable('ingoing_calls', incoming.toString())
 						this.setVariable('ingoing_ringing_calls', incoming_ringing.toString())
 
-						outgoing > 0 ? this.hasOutgoingCall = true : this.hasOutgoingCall = false
-						incoming > 0 ? this.hasIngoingCall = true : this.hasIngoingCall = false
-						incoming_ringing > 0 ? this.hasRingingCall = true : this.hasRingingCall = false
-						console.log('Ringing:',this.hasRingingCall)
-						
+						outgoing > 0 ? (this.hasOutgoingCall = true) : (this.hasOutgoingCall = false)
+						incoming > 0 ? (this.hasIngoingCall = true) : (this.hasIngoingCall = false)
+						incoming_ringing > 0 ? (this.hasRingingCall = true) : (this.hasRingingCall = false)
+						console.log('Ringing:', this.hasRingingCall)
+
 						this.checkFeedbacks(FeedbackId.Ringing)
 						this.checkFeedbacks(FeedbackId.HasIngoingCall)
 						this.checkFeedbacks(FeedbackId.HasOutgoingCall)
 					})
 
 					// console.log(this.ongoingCalls)
-				}
-				else if (status.Time != undefined) {
+				} else if (status.Time != undefined) {
 					if (status.Time.SystemTime != null) {
 						// let dateTime = new Date(status.Time.SystemTime)
 						// let showMsg = `${dateTime.getHours}:${dateTime.getMinutes} ${dateTime.getDay}-${dateTime.getMonth}-${dateTime.getFullYear}`
 						this.setVariable('systemtime', status.Time.SystemTime)
 					}
-				}
-				else if (status.Conference != undefined) {
+				} else if (status.Conference != undefined) {
 					if (status.Conference.DoNotDisturb != null) {
 						this.setVariable('DoNotDisturb', status.Conference.DoNotDisturb)
 					}
@@ -182,18 +188,16 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 					if (status.Conference.SelectedCallProtocol != null) {
 						this.setVariable('SelectedCallProtocol', status.Conference.SelectedCallProtocol)
 					}
-				}
-				else if (status.Video != undefined && status.Video.Input != undefined) {
-					console.log('status video input:',status.Video.Input);
+				} else if (status.Video != undefined && status.Video.Input != undefined) {
+					console.log('status video input:', status.Video.Input)
 					if (status.Video.Input.MainVideoSource != null) {
 						this.setVariable('MainVideoSource', status.Video.Input.MainVideoSource)
 					}
 					// if (status.Video.Input.Source [n] ConnectorId != null) {
 					// 	this.setVariable('Source [n] ConnectorId', status.Video.Input.Source [n] ConnectorId)
 					// }
-				}
-				else {
-					console.log('feedback:',status);
+				} else {
+					console.log('feedback:', status)
 				}
 			}
 			if (
@@ -252,15 +256,15 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 	 * Processes a feedback state.
 	 */
 	public feedback(feedback: CompanionFeedbackEvent): CompanionFeedbackResult {
-		console.log('Sending feedback1');
-	if (this.websocket !== undefined) {
-		console.log('Sending feedback2');
-		
-		return ExecuteFeedback(this, feedback)
-	}
+		console.log('Sending feedback1')
+		if (this.websocket !== undefined) {
+			console.log('Sending feedback2')
 
-	return {}
-}
+			return ExecuteFeedback(this, feedback)
+		}
+
+		return {}
+	}
 }
 
 export = ControllerInstance

@@ -34,12 +34,12 @@ export function BackgroundPicker(color: number): CompanionInputFieldColor {
 
 export function HandleXAPICall(instance: WebexInstanceSkel<DeviceConfig>, call: WebexCall): void {
 	if (call.ghost === WebexBoolean.True) {
-		instance.ongoingCalls = instance.ongoingCalls.filter(existingCall => existingCall.id !== call.id)
+		instance.ongoingCalls = instance.ongoingCalls.filter((existingCall) => existingCall.id !== call.id)
 	} else {
-		const existingCall = instance.ongoingCalls.find(existingCall => existingCall.id === call.id)
+		const existingCall = instance.ongoingCalls.find((existingCall) => existingCall.id === call.id)
 
 		if (existingCall !== undefined) {
-			instance.ongoingCalls = instance.ongoingCalls.map(existingCall =>
+			instance.ongoingCalls = instance.ongoingCalls.map((existingCall) =>
 				existingCall.id === call.id ? { ...existingCall, ...call } : { ...existingCall }
 			)
 		} else {
@@ -76,10 +76,10 @@ export function HandleXAPIFeedback(instance: WebexInstanceSkel<DeviceConfig>, ev
 	if (event.Call) {
 		event.Call.forEach((call: WebexCall) => HandleXAPICall(instance, call))
 		const currentlyRingingCalls = instance.ongoingCalls.filter(
-			call => call.Direction === 'Incoming' && call.Status === 'Ringing'
+			(call) => call.Direction === 'Incoming' && call.Status === 'Ringing'
 		)
-		const currentlyIngoingCalls = instance.ongoingCalls.filter(call => call.Direction === 'Incoming')
-		const currentlyOutgoingCalls = instance.ongoingCalls.filter(call => call.Direction === 'Outgoing')
+		const currentlyIngoingCalls = instance.ongoingCalls.filter((call) => call.Direction === 'Incoming')
+		const currentlyOutgoingCalls = instance.ongoingCalls.filter((call) => call.Direction === 'Outgoing')
 
 		const currentlyHasRingingCalls = currentlyRingingCalls.length > 0
 		const currentlyHasIngoingCalls = currentlyIngoingCalls.length > 0
@@ -151,14 +151,14 @@ export function ExecuteFeedback(
 	feedback: CompanionFeedbackEvent
 ): CompanionFeedbackResult {
 	const opt = feedback.options
-	console.log('instance.hasRingingCall',instance.hasRingingCall);
-	
+	console.log('instance.hasRingingCall', instance.hasRingingCall)
+
 	const getOptColors = (): CompanionFeedbackResult => ({ color: Number(opt.fg), bgcolor: Number(opt.bg) })
 
 	const feedbackType = feedback.type as FeedbackId
-	console.log('feedbackType', feedbackType);
-	console.log('instance.hasRingingCall', instance.hasRingingCall);
-	
+	console.log('feedbackType', feedbackType)
+	console.log('instance.hasRingingCall', instance.hasRingingCall)
+
 	switch (feedbackType) {
 		case FeedbackId.Ringing:
 			if (instance.hasRingingCall) {
