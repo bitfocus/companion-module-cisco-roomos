@@ -1,21 +1,15 @@
 import { WebexCall, WebexInstanceSkel, WebexMessage } from './webex'
 import WebSocket = require('ws')
-import { CompanionActionEvent, CompanionConfigField, CompanionSystem } from '../../../instance_skel_types'
+import { CompanionActionEvent, CompanionConfigField, CompanionSystem,	CompanionFeedbackEvent,
+	CompanionFeedbackResult } from '../../../instance_skel_types'
 import { GetActionsList, HandleAction } from './actions'
 import { DeviceConfig, GetConfigFields } from './config'
+import { ExecuteFeedback, FeedbackId, GetFeedbacksList } from './feedback'
+import { GetPresetsList } from './presets'
 import { InitVariables } from './variables'
 
 // DEBUG ONLY!!!!!!
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
-// interface connector {
-// 	id: string,
-// 	Mute: string
-// }
-
-// interface connector {
-// 	id: number; Mute: string; key: any
-// }
-// interface connector extends Array<connector>{}
 
 class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 	// private socket: Socket | undefined
@@ -28,6 +22,12 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 		this.updateConfig(this.config)
 	}
 
+	// Override base types to make types stricter
+	public checkFeedbacks(feedbackId?: FeedbackId, ignoreInitDone?: boolean): void {
+		if (ignoreInitDone) {
+			super.checkFeedbacks(feedbackId)
+		}
+	}
 	public initWebSocket(): void {
 		if (this.websocket !== undefined) {
 			this.websocket.close()
@@ -133,9 +133,33 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 						this.setVariable('microphones_mute', status.Audio.Microphones.Mute)
 				}
 				else if (status.Call != undefined) {
+					this.ongoingCalls.length = 0
+					let outgoing = 0
+					let incoming = 0
+					let incoming_ringing = 0
+
 					status.Call.forEach((call: WebexCall) => {
 						this.ongoingCalls.push(call)
+						if(call.Direction == 'Outgoing') {
+							outgoing ++
+						} 
+						if(call.Direction == 'Incoming') {
+							incoming ++
+						} 
+						if(call.Status == 'Ringing') {
+							incoming_ringing ++
+						}
+						this.setVariable('outgoing_calls', outgoing.toString())
+						this.setVariable('ingoing_calls', incoming.toString())
+						this.setVariable('ingoing_ringing_calls', incoming_ringing.toString())
+						outgoing > 0 ? this.hasOutgoingCall = true : this.hasOutgoingCall = false
+						incoming > 0 ? this.hasIngoingCall = true : this.hasIngoingCall = false
+						incoming_ringing > 0 ? this.hasRingingCall = true : this.hasRingingCall = false
+						this.checkFeedbacks(FeedbackId.Ringing)
+						this.checkFeedbacks(FeedbackId.HasIngoingCall)
+						this.checkFeedbacks(FeedbackId.HasOutgoingCall)
 					})
+
 					console.log(this.ongoingCalls)
 				}
 				else if (status.Time != undefined) {
@@ -197,6 +221,8 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 		this.setActions(GetActionsList(this))
 		InitVariables(this)
 		this.initWebSocket()
+		this.setPresetDefinitions(GetPresetsList(this))
+		this.setFeedbackDefinitions(GetFeedbacksList(this))
 	}
 
 	public action(action: CompanionActionEvent): void {
@@ -218,6 +244,17 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 		this.debug('destroy', this.id)
 		this.websocket?.close()
 	}
+
+	/**
+	 * Processes a feedback state.
+	 */
+	public feedback(feedback: CompanionFeedbackEvent): CompanionFeedbackResult {
+	if (this.websocket !== undefined) {
+		return ExecuteFeedback(this, feedback)
+	}
+
+	return {}
+}
 }
 
 export = ControllerInstance

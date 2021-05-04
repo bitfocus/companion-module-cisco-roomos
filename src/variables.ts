@@ -5,18 +5,18 @@ import { DeviceConfig } from './config'
 export function InitVariables(instance: InstanceSkel<DeviceConfig>): void {
 	const variables: CompanionVariable[] = []
 
-	// variables.push({
-	// 	label: `Number of outgoing calls`,
-	// 	name: `outgoing_calls`
-	// })
-	// variables.push({
-	// 	label: `Number of ingoing calls`,
-	// 	name: `ingoing_calls`
-	// })
-	// variables.push({
-	// 	label: `Number of ingoing actively ringing calls`,
-	// 	name: `ingoing_ringing_calls`
-	// })
+	variables.push({
+		label: `Number of outgoing calls`,
+		name: `outgoing_calls`
+	})
+	variables.push({
+		label: `Number of ingoing calls`,
+		name: `ingoing_calls`
+	})
+	variables.push({
+		label: `Number of ingoing actively ringing calls`,
+		name: `ingoing_ringing_calls`
+	})
 	variables.push({
 		label: `Auto answer activated`,
 		name: `autoanswer_mode`
@@ -66,9 +66,9 @@ export function InitVariables(instance: InstanceSkel<DeviceConfig>): void {
 		name: 'SelectedCallProtocol'
 	})
 
-	// instance.setVariable('outgoing_calls', '0')
-	// instance.setVariable('ingoing_calls', '0')
-	// instance.setVariable('ingoing_ringing_calls', '0')
+	instance.setVariable('outgoing_calls', '0')
+	instance.setVariable('ingoing_calls', '0')
+	instance.setVariable('ingoing_ringing_calls', '0')
 
 	instance.setVariableDefinitions(variables)
 }
