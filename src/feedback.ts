@@ -151,6 +151,8 @@ export function ExecuteFeedback(
 	feedback: CompanionFeedbackEvent
 ): CompanionFeedbackResult {
 	const opt = feedback.options
+	console.log('instance.hasRingingCall',instance.hasRingingCall);
+	
 	const getOptColors = (): CompanionFeedbackResult => ({ color: Number(opt.fg), bgcolor: Number(opt.bg) })
 
 	const feedbackType = feedback.type as FeedbackId

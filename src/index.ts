@@ -152,15 +152,18 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 						this.setVariable('outgoing_calls', outgoing.toString())
 						this.setVariable('ingoing_calls', incoming.toString())
 						this.setVariable('ingoing_ringing_calls', incoming_ringing.toString())
+
 						outgoing > 0 ? this.hasOutgoingCall = true : this.hasOutgoingCall = false
 						incoming > 0 ? this.hasIngoingCall = true : this.hasIngoingCall = false
 						incoming_ringing > 0 ? this.hasRingingCall = true : this.hasRingingCall = false
+						console.log('Ringing:',this.hasRingingCall)
+						
 						this.checkFeedbacks(FeedbackId.Ringing)
 						this.checkFeedbacks(FeedbackId.HasIngoingCall)
 						this.checkFeedbacks(FeedbackId.HasOutgoingCall)
 					})
 
-					console.log(this.ongoingCalls)
+					// console.log(this.ongoingCalls)
 				}
 				else if (status.Time != undefined) {
 					if (status.Time.SystemTime != null) {
@@ -249,7 +252,10 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 	 * Processes a feedback state.
 	 */
 	public feedback(feedback: CompanionFeedbackEvent): CompanionFeedbackResult {
+		console.log('Sending feedback1');
 	if (this.websocket !== undefined) {
+		console.log('Sending feedback2');
+		
 		return ExecuteFeedback(this, feedback)
 	}
 
