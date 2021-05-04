@@ -28,10 +28,8 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 	}
 
 	// Override base types to make types stricter
-	public checkFeedbacks(feedbackId?: FeedbackId, ignoreInitDone?: boolean): void {
-		if (ignoreInitDone) {
-			super.checkFeedbacks(feedbackId)
-		}
+	public checkFeedbacks(feedbackId?: FeedbackId): void {
+		super.checkFeedbacks(feedbackId)
 	}
 	public initWebSocket(): void {
 		if (this.websocket !== undefined) {
@@ -138,8 +136,11 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 					if (status.Audio.Volume != null) this.setVariable('volume', status.Audio.Volume)
 					if (status.Audio.Microphones != undefined && status.Audio.Microphones.MusicMode != undefined)
 						this.setVariable('microphones_musicmode', status.Audio.Microphones.MusicMode)
-					if (status.Audio.Microphones != undefined && status.Audio.Microphones.Mute != undefined)
+					if (status.Audio.Microphones != undefined && status.Audio.Microphones.Mute != undefined) {
 						this.setVariable('microphones_mute', status.Audio.Microphones.Mute)
+						this.microphoneMute = status.Audio.Microphones.Mute == 'On' ? true : false
+						this.checkFeedbacks(FeedbackId.MicrophoneMute)
+					}
 				} else if (status.Call != undefined) {
 					this.ongoingCalls.length = 0
 					let outgoing = 0
@@ -164,7 +165,6 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 						outgoing > 0 ? (this.hasOutgoingCall = true) : (this.hasOutgoingCall = false)
 						incoming > 0 ? (this.hasIngoingCall = true) : (this.hasIngoingCall = false)
 						incoming_ringing > 0 ? (this.hasRingingCall = true) : (this.hasRingingCall = false)
-						console.log('Ringing:', this.hasRingingCall)
 
 						this.checkFeedbacks(FeedbackId.Ringing)
 						this.checkFeedbacks(FeedbackId.HasIngoingCall)
@@ -189,7 +189,6 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 						this.setVariable('SelectedCallProtocol', status.Conference.SelectedCallProtocol)
 					}
 				} else if (status.Video != undefined && status.Video.Input != undefined) {
-					console.log('status video input:', status.Video.Input)
 					if (status.Video.Input.MainVideoSource != null) {
 						this.setVariable('MainVideoSource', status.Video.Input.MainVideoSource)
 					}
@@ -256,13 +255,9 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 	 * Processes a feedback state.
 	 */
 	public feedback(feedback: CompanionFeedbackEvent): CompanionFeedbackResult {
-		console.log('Sending feedback1')
 		if (this.websocket !== undefined) {
-			console.log('Sending feedback2')
-
 			return ExecuteFeedback(this, feedback)
 		}
-
 		return {}
 	}
 }

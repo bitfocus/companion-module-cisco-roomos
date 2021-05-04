@@ -1,6 +1,11 @@
 import { WebexInstanceSkel } from './webex'
 
-import { CompanionActionEvent, CompanionActions, CompanionInputFieldDropdown, CompanionInputFieldNumber } from '../../../instance_skel_types'
+import {
+	CompanionActionEvent,
+	CompanionActions,
+	CompanionInputFieldDropdown,
+	CompanionInputFieldNumber
+} from '../../../instance_skel_types'
 import { DeviceConfig } from './config'
 
 export enum ActionId {
@@ -171,8 +176,7 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				id: 'Params',
 				default: '{Key:Value}',
 				regex: self.REGEX_SOMETHING
-			},
-
+			}
 		]
 	}
 	actions[ActionId.Dial] = {
@@ -275,7 +279,8 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 					{ id: 'Stop', label: 'Stop' }
 				],
 				default: 'Start'
-			}, ConnectorIdNumber(),
+			},
+			ConnectorIdNumber(),
 			{
 				label: 'Instance',
 				id: 'Instance',
@@ -805,7 +810,7 @@ export async function HandleAction(
 			case ActionId.CustomCommand: {
 				command.id = '0'
 				command.method = String(opt.Method)
-				command.params = JSON.parse(String(opt.Params)) 
+				command.params = JSON.parse(String(opt.Params))
 				break
 			}
 			case ActionId.Dial: {
@@ -1071,7 +1076,10 @@ export async function HandleAction(
 				const connector = parseInt(String(opt.Connector))
 				command.id = '142'
 				command.method = 'xSet'
-				command.params = { Path: ['Configuration', 'Video', 'Output', 'Connector', connector, 'MonitorRole'], Value: opt.MonitorRole }
+				command.params = {
+					Path: ['Configuration', 'Video', 'Output', 'Connector', connector, 'MonitorRole'],
+					Value: opt.MonitorRole
+				}
 				break
 			}
 			case ActionId.MessageSend: {
@@ -1085,14 +1093,14 @@ export async function HandleAction(
 			case ActionId.StandbyControl: {
 				command.id = '144'
 				command.method = 'xSet'
-				command.params = { Path: ['xConfiguration', 'Standby', 'Control'], Value: opt.Standby}
+				command.params = { Path: ['xConfiguration', 'Standby', 'Control'], Value: opt.Standby }
 				break
 			}
 			case ActionId.StandbyDelay: {
 				const delay = parseInt(String(opt.Delay))
 				command.id = '145'
 				command.method = 'xSet'
-				command.params = { Path: ['xConfiguration', 'Standby', 'Delay'], Value: delay}
+				command.params = { Path: ['xConfiguration', 'Standby', 'Delay'], Value: delay }
 				break
 			}
 		}
