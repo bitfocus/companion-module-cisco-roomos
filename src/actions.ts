@@ -854,16 +854,13 @@ export async function HandleAction(
 			}
 			case ActionId.Volume: {
 				const volume = parseInt(String(opt.volume))
-				command.id = '120'
-				command.method = 'xCommand/Audio/Volume/Set'
-				command.params = { Level: volume }
+				instance.xapi?.Command.Audio.Volume.Set({ Level: volume })
 				break
 			}
 			case ActionId.MicrophoneMute: {
-				command.id = '121'
 				opt.Mute == 'On'
-					? (command.method = 'xCommand/Audio/Microphones/Mute')
-					: (command.method = 'xCommand/Audio/Microphones/Unmute')
+					? instance.xapi?.Command.Audio.Microphones.Mute()
+					: instance.xapi?.Command.Audio.Microphones.Unmute()
 				break
 			}
 			case ActionId.MicrophoneInput: {
@@ -1104,11 +1101,6 @@ export async function HandleAction(
 				break
 			}
 		}
-
-		// let converted: string = JSON.stringify(command).replace(/\\/g, '')
-		let converted: string = JSON.stringify(command)
-		console.log(converted)
-		instance.websocket?.send(converted)
 	} catch (e) {
 		instance.debug('Action failed: ' + e)
 	}

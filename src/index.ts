@@ -1,5 +1,6 @@
-import { WebexCall, WebexInstanceSkel, WebexMessage } from './webex'
-import WebSocket = require('ws')
+import { WebexInstanceSkel, WebexOnOffBoolean, WebexConfigAutoAnswer } from './webex'
+import { connect as XAPIConnect } from 'jsxapi'
+
 import {
 	CompanionActionEvent,
 	CompanionConfigField,
@@ -9,213 +10,254 @@ import {
 } from '../../../instance_skel_types'
 import { GetActionsList, HandleAction } from './actions'
 import { DeviceConfig, GetConfigFields } from './config'
-import { ExecuteFeedback, FeedbackId, GetFeedbacksList } from './feedback'
+import { ExecuteFeedback, FeedbackId, GetFeedbacksList, HandleXAPIConfFeedback, HandleXAPIFeedback } from './feedback'
 import { GetPresetsList } from './presets'
 import { InitVariables } from './variables'
 
-// DEBUG ONLY!!!!!!
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
-
 class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
-	// private socket: Socket | undefined
+	private connected: boolean
+	private connecting: boolean
+
 	constructor(system: CompanionSystem, id: string, config: DeviceConfig) {
 		super(system, id, config)
+
+		this.connected = false
+		this.connecting = false
 	}
 
 	public init(): void {
 		this.status(this.STATUS_UNKNOWN)
 		this.updateConfig(this.config)
 	}
-
+	/**
+	 * INTERNAL: Setup connection
+	 *
+	 * @access protected
+	 */
+	public tick(): void {
+		console.log('Tick:', { connected: this.connected, connecting: this.connecting, host: this.config?.host })
+		if (!this.connected && !this.connecting) {
+			if (this.config?.host) {
+				this.initSSH()
+			}
+		}
+	}
 	// Override base types to make types stricter
 	public checkFeedbacks(feedbackId?: FeedbackId): void {
-		super.checkFeedbacks(feedbackId)
+			super.checkFeedbacks(feedbackId)
 	}
-	public initWebSocket(): void {
-		if (this.websocket !== undefined) {
-			this.websocket.close()
-			this.websocket = undefined
+	/**
+	 * Setup connection for SSH connection
+	 */
+	public initSSH(): void {
+		if (this.xapi !== undefined) {
+			this.xapi.close()
+			this.xapi = undefined
+			this.reset()
 			InitVariables(this)
 		}
 
-		if (this.config.host) {
-			console.log(`Connecting to ${this.config.host} via WebSocket`)
+		try {
 			const { host, username, password } = this.config
-			// Check for empty/undefined first?
 
-			this.websocket = new WebSocket(`wss://${host}/ws`, {
-				headers: {
-					Authorization: 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64')
-				}
+			this.xapi = XAPIConnect('ssh://' + host, {
+				username,
+				password
 			})
+			this.connecting = true
 			this.status(this.STATUS_WARNING, 'Connecting')
 
-			this.websocket.on('open', () => {
-				console.log('Connection has been established.')
-				this.status(this.STATUS_OK, 'Ready')
-				let enableFeedbackConfiguration = {
-					jsonrpc: '2.0',
-					id: '113',
-					method: 'xFeedback/Subscribe',
-					params: { Query: ['Configuration'], NotifyCurrentValue: true }
-				}
-				let enableFeedbackTime = {
-					jsonrpc: '2.0',
-					id: '114',
-					method: 'xFeedback/Subscribe',
-					params: { Query: ['Status', 'Time', 'SystemTime'], NotifyCurrentValue: true }
-				}
-				let enableFeedbackCall = {
-					jsonrpc: '2.0',
-					id: '115',
-					method: 'xFeedback/Subscribe',
-					params: { Query: ['Status', 'Call'], NotifyCurrentValue: true }
-				}
-				let enableFeedbackAudio = {
-					jsonrpc: '2.0',
-					id: '116',
-					method: 'xFeedback/Subscribe',
-					params: { Query: ['Status', 'Audio'], NotifyCurrentValue: true }
-				}
-				let enableFeedbackDoNotDisturb = {
-					jsonrpc: '2.0',
-					id: '117',
-					method: 'xFeedback/Subscribe',
-					params: { Query: ['Status', 'Conference'], NotifyCurrentValue: true }
-				}
-				let enableFeedbackMainVideoSource = {
-					jsonrpc: '2.0',
-					id: '118',
-					method: 'xFeedback/Subscribe',
-					params: { Query: ['Status', 'Video', 'Input', 'MainVideoSource'], NotifyCurrentValue: true }
-				}
-
-				this.websocket?.send(JSON.stringify(enableFeedbackConfiguration))
-				this.websocket?.send(JSON.stringify(enableFeedbackTime))
-				this.websocket?.send(JSON.stringify(enableFeedbackCall))
-				this.websocket?.send(JSON.stringify(enableFeedbackAudio))
-				this.websocket?.send(JSON.stringify(enableFeedbackDoNotDisturb))
-				this.websocket?.send(JSON.stringify(enableFeedbackMainVideoSource))
-			})
-			this.websocket.on('message', (data: WebexMessage) => {
-				this.processJSON(data)
-			})
-			this.websocket.on('close', () => {
-				console.log('Connection closed')
-				this.status(this.STATUS_WARNING, 'Connection closed by server')
-			})
-			this.websocket.on('error', (err: string) => {
-				console.log('Error:', err)
+			this.xapi.on('error', (error) => {
 				this.status(this.STATUS_ERROR, 'Connection error')
-				this.log('error', 'Cisco Webex error: ' + err)
+				this.log('error', 'Cisco Webex error: ' + error)
+				this.xapi = undefined
+				this.connected = false
+				this.connecting = false
+				this.reset()
 			})
+
+			this.xapi.on('ready', () => {
+				// console.log('ready THIS:', this)
+				this.status(this.STATUS_OK, 'Ready')
+				this.connected = true
+				this.checkFeedbacks()
+
+				this.xapi?.config.get('Conference AutoAnswer').then((value) => {
+					if (value?.Mode) {
+						if (value?.Mode != null) this.setVariable('autoanswer_mode', value.Mode)
+						if (value?.Mute != null) this.setVariable('autoanswer_mute', value.Mute)
+						if (value?.Delay != null) this.setVariable('autoanswer_delay', value.Delay)
+						this.autoAnswerConfig = value as WebexConfigAutoAnswer
+					}
+				})
+				this.xapi?.Status.Conference.get().then((value: any) => {
+					if (value.DoNotDisturb != null) {
+						this.setVariable('DoNotDisturb', value.DoNotDisturb)
+					}
+					if (value.Presentation != null) {
+						this.setVariable('Presentation', value.Presentation.CallId + value.Presentation.Mode)
+					}
+					if (value.SelectedCallProtocol != null) {
+						this.setVariable('SelectedCallProtocol', value.SelectedCallProtocol)
+					}
+				})
+
+				this.xapi?.Status.Time.SystemTime.get().then((time: Date) => {
+					this.setVariable('systemtime', time.toString())
+				})
+				this.xapi?.Status.Audio.SelectedDevice.get().then((value: any) => {
+					console.log('AUDIO SELECTED DEVICE:', value)
+					this.setVariable('selected_device', value.SelectedDevice)
+				})
+				this.xapi?.Status.Audio.get().then((value: any) => {
+					let muteState = ''
+					for (let index = 0; index < value.Input.Connectors.Microphone.length; index++) {
+						const element = value.Input.Connectors.Microphone[index]
+						muteState += `(Mic ${element.id} Mute: ${element.Mute})`
+						this.connectorMute[element.id] = element.Mute
+					}
+					this.setVariable('audio_connector_mute', muteState)
+					this.setVariable('volume', value.Volume)
+					this.setVariable('microphones_musicmode', value.Microphones.MusicMode)
+					this.setVariable('microphones_mute', value.Microphones.Mute)
+					this.microphoneMute = value.Microphones.Mute == 'On' ? true : false
+					this.checkFeedbacks(FeedbackId.MicrophoneMute)
+				})
+			})
+
+			this.xapi.feedback.on('Status', (event) => HandleXAPIFeedback(this, event))
+			this.xapi.feedback.on('Configuration', (event) => HandleXAPIConfFeedback(this, event))
+		} catch (e) {
+			this.log('error', 'Error connecting to webex device: ' + e.message)
+			this.xapi = undefined
+			this.connected = false
+			this.connecting = true
+			this.reset()
 		}
 	}
 
-	private processJSON(msg: WebexMessage): void {
-		let message = JSON.parse(msg.toString())
-		if (message.method == 'xFeedback/Event') {
-			if (message.params.Status != undefined) {
-				let status = message.params.Status
-				if (status.Audio != undefined) {
-					if (status.Audio.SelectedDevice != null) this.setVariable('selected_device', status.Audio.SelectedDevice)
-
-					if (
-						status.Audio.Input != undefined &&
-						status.Audio.Input.Connectors != undefined &&
-						status.Audio.Input.Connectors.Microphone != undefined
-					) {
-						let muteState = ''
-						for (let index = 0; index < status.Audio.Input.Connectors.Microphone.length; index++) {
-							const element = status.Audio.Input.Connectors.Microphone[index]
-							muteState += `(Mic ${element.id} Mute: ${element.Mute})`
-							this.connectorMute[element.id] = element.Mute
-						}
-						this.setVariable('audio_connector_mute', muteState)
-					}
-					if (status.Audio.Volume != null) this.setVariable('volume', status.Audio.Volume)
-					if (status.Audio.Microphones != undefined && status.Audio.Microphones.MusicMode != undefined)
-						this.setVariable('microphones_musicmode', status.Audio.Microphones.MusicMode)
-					if (status.Audio.Microphones != undefined && status.Audio.Microphones.Mute != undefined) {
-						this.setVariable('microphones_mute', status.Audio.Microphones.Mute)
-						this.microphoneMute = status.Audio.Microphones.Mute == 'On' ? true : false
-						this.checkFeedbacks(FeedbackId.MicrophoneMute)
-					}
-				} else if (status.Call != undefined) {
-					this.ongoingCalls.length = 0
-					let outgoing = 0
-					let incoming = 0
-					let incoming_ringing = 0
-
-					status.Call.forEach((call: WebexCall) => {
-						this.ongoingCalls.push(call)
-						if (call.Direction == 'Outgoing') {
-							outgoing++
-						}
-						if (call.Direction == 'Incoming') {
-							incoming++
-						}
-						if (call.Status == 'Ringing') {
-							incoming_ringing++
-						}
-						this.setVariable('outgoing_calls', outgoing.toString())
-						this.setVariable('ingoing_calls', incoming.toString())
-						this.setVariable('ingoing_ringing_calls', incoming_ringing.toString())
-
-						outgoing > 0 ? (this.hasOutgoingCall = true) : (this.hasOutgoingCall = false)
-						incoming > 0 ? (this.hasIngoingCall = true) : (this.hasIngoingCall = false)
-						incoming_ringing > 0 ? (this.hasRingingCall = true) : (this.hasRingingCall = false)
-
-						this.checkFeedbacks(FeedbackId.Ringing)
-						this.checkFeedbacks(FeedbackId.HasIngoingCall)
-						this.checkFeedbacks(FeedbackId.HasOutgoingCall)
-					})
-
-					// console.log(this.ongoingCalls)
-				} else if (status.Time != undefined) {
-					if (status.Time.SystemTime != null) {
-						// let dateTime = new Date(status.Time.SystemTime)
-						// let showMsg = `${dateTime.getHours}:${dateTime.getMinutes} ${dateTime.getDay}-${dateTime.getMonth}-${dateTime.getFullYear}`
-						this.setVariable('systemtime', status.Time.SystemTime)
-					}
-				} else if (status.Conference != undefined) {
-					if (status.Conference.DoNotDisturb != null) {
-						this.setVariable('DoNotDisturb', status.Conference.DoNotDisturb)
-					}
-					if (status.Conference.Presentation != null) {
-						this.setVariable('Presentation', status.Conference.Presentation)
-					}
-					if (status.Conference.SelectedCallProtocol != null) {
-						this.setVariable('SelectedCallProtocol', status.Conference.SelectedCallProtocol)
-					}
-				} else if (status.Video != undefined && status.Video.Input != undefined) {
-					if (status.Video.Input.MainVideoSource != null) {
-						this.setVariable('MainVideoSource', status.Video.Input.MainVideoSource)
-					}
-					// if (status.Video.Input.Source [n] ConnectorId != null) {
-					// 	this.setVariable('Source [n] ConnectorId', status.Video.Input.Source [n] ConnectorId)
-					// }
-				} else {
-					console.log('feedback:', status)
-				}
-			}
-			if (
-				message.params.Configuration != undefined &&
-				message.params.Configuration.Conference != undefined &&
-				message.params.Configuration.Conference.AutoAnswer != undefined
-			) {
-				let AutoAnswer = message.params.Configuration.Conference.AutoAnswer
-				if (AutoAnswer.Mode != null)
-					this.setVariable('autoanswer_mode', message.params.Configuration.Conference.AutoAnswer.Mode)
-				if (AutoAnswer.Mute != null)
-					this.setVariable('autoanswer_mute', message.params.Configuration.Conference.AutoAnswer.Mute)
-				if (AutoAnswer.Delay != null)
-					this.setVariable('autoanswer_delay', message.params.Configuration.Conference.AutoAnswer.Delay)
-			}
-		} else {
-			console.log('message:', message)
+	/**
+	 * INTERNAL: Reset class variables
+	 *
+	 * @access protected
+	 */
+	reset(): void {
+		this.ongoingCalls = []
+		this.connected = false
+		this.hasIngoingCall = false
+		this.hasOutgoingCall = false
+		this.hasRingingCall = false
+		this.autoAnswerConfig = {
+			Delay: '',
+			Mode: WebexOnOffBoolean.Unknown,
+			Mute: WebexOnOffBoolean.Unknown
 		}
 	}
+
+	// private processJSON(msg: WebexMessage): void {
+	// 	let message = JSON.parse(msg.toString())
+	// 	if (message.method == 'xFeedback/Event') {
+	// 		if (message.params.Status != undefined) {
+	// 			let status = message.params.Status
+	// 			if (status.Audio != undefined) {
+	// 				if (status.Audio.SelectedDevice != null) this.setVariable('selected_device', status.Audio.SelectedDevice)
+
+	// 				if (
+	// 					status.Audio.Input != undefined &&
+	// 					status.Audio.Input.Connectors != undefined &&
+	// 					status.Audio.Input.Connectors.Microphone != undefined
+	// 				) {
+	// 					let muteState = ''
+	// 					for (let index = 0; index < status.Audio.Input.Connectors.Microphone.length; index++) {
+	// 						const element = status.Audio.Input.Connectors.Microphone[index]
+	// 						muteState += `(Mic ${element.id} Mute: ${element.Mute})`
+	// 						this.connectorMute[element.id] = element.Mute
+	// 					}
+	// 					this.setVariable('audio_connector_mute', muteState)
+	// 				}
+	// 				if (status.Audio.Volume != null) this.setVariable('volume', status.Audio.Volume)
+	// 				if (status.Audio.Microphones != undefined && status.Audio.Microphones.MusicMode != undefined)
+	// 					this.setVariable('microphones_musicmode', status.Audio.Microphones.MusicMode)
+	// 				if (status.Audio.Microphones != undefined && status.Audio.Microphones.Mute != undefined) {
+	// 					this.setVariable('microphones_mute', status.Audio.Microphones.Mute)
+	// 					this.microphoneMute = status.Audio.Microphones.Mute == 'On' ? true : false
+	// 					this.checkFeedbacks(FeedbackId.MicrophoneMute)
+	// 				}
+	// 			} else if (status.Call != undefined) {
+	// 				this.ongoingCalls.length = 0
+	// 				let outgoing = 0
+	// 				let incoming = 0
+	// 				let incoming_ringing = 0
+
+	// 				status.Call.forEach((call: WebexCall) => {
+	// 					this.ongoingCalls.push(call)
+	// 					if (call.Direction == 'Outgoing') {
+	// 						outgoing++
+	// 					}
+	// 					if (call.Direction == 'Incoming') {
+	// 						incoming++
+	// 					}
+	// 					if (call.Status == 'Ringing') {
+	// 						incoming_ringing++
+	// 					}
+	// 					this.setVariable('outgoing_calls', outgoing.toString())
+	// 					this.setVariable('ingoing_calls', incoming.toString())
+	// 					this.setVariable('ingoing_ringing_calls', incoming_ringing.toString())
+
+	// 					outgoing > 0 ? (this.hasOutgoingCall = true) : (this.hasOutgoingCall = false)
+	// 					incoming > 0 ? (this.hasIngoingCall = true) : (this.hasIngoingCall = false)
+	// 					incoming_ringing > 0 ? (this.hasRingingCall = true) : (this.hasRingingCall = false)
+
+	// 					this.checkFeedbacks(FeedbackId.Ringing)
+	// 					this.checkFeedbacks(FeedbackId.HasIngoingCall)
+	// 					this.checkFeedbacks(FeedbackId.HasOutgoingCall)
+	// 				})
+
+	// 				// console.log(this.ongoingCalls)
+	// 			} else if (status.Time != undefined) {
+	// 				if (status.Time.SystemTime != null) {
+	// 					// let dateTime = new Date(status.Time.SystemTime)
+	// 					// let showMsg = `${dateTime.getHours}:${dateTime.getMinutes} ${dateTime.getDay}-${dateTime.getMonth}-${dateTime.getFullYear}`
+	// 					this.setVariable('systemtime', status.Time.SystemTime)
+	// 				}
+	// 			} else if (status.Conference != undefined) {
+	// 				if (status.Conference.DoNotDisturb != null) {
+	// 					this.setVariable('DoNotDisturb', status.Conference.DoNotDisturb)
+	// 				}
+	// 				if (status.Conference.Presentation != null) {
+	// 					this.setVariable('Presentation', status.Conference.Presentation)
+	// 				}
+	// 				if (status.Conference.SelectedCallProtocol != null) {
+	// 					this.setVariable('SelectedCallProtocol', status.Conference.SelectedCallProtocol)
+	// 				}
+	// 			} else if (status.Video != undefined && status.Video.Input != undefined) {
+	// 				if (status.Video.Input.MainVideoSource != null) {
+	// 					this.setVariable('MainVideoSource', status.Video.Input.MainVideoSource)
+	// 				}
+	// 				// if (status.Video.Input.Source [n] ConnectorId != null) {
+	// 				// 	this.setVariable('Source [n] ConnectorId', status.Video.Input.Source [n] ConnectorId)
+	// 				// }
+	// 			} else {
+	// 				console.log('feedback:', status)
+	// 			}
+	// 		}
+	// 		if (
+	// 			message.params.Configuration != undefined &&
+	// 			message.params.Configuration.Conference != undefined &&
+	// 			message.params.Configuration.Conference.AutoAnswer != undefined
+	// 		) {
+	// 			let AutoAnswer = message.params.Configuration.Conference.AutoAnswer
+	// 			if (AutoAnswer.Mode != null)
+	// 				this.setVariable('autoanswer_mode', message.params.Configuration.Conference.AutoAnswer.Mode)
+	// 			if (AutoAnswer.Mute != null)
+	// 				this.setVariable('autoanswer_mute', message.params.Configuration.Conference.AutoAnswer.Mute)
+	// 			if (AutoAnswer.Delay != null)
+	// 				this.setVariable('autoanswer_delay', message.params.Configuration.Conference.AutoAnswer.Delay)
+	// 		}
+	// 	} else {
+	// 		console.log('message:', message)
+	// 	}
+	// }
 	/**
 	 * Process an updated configuration array.
 	 *
@@ -226,7 +268,7 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 		this.config = config
 		this.setActions(GetActionsList(this))
 		InitVariables(this)
-		this.initWebSocket()
+		this.initSSH()
 		this.setPresetDefinitions(GetPresetsList(this))
 		this.setFeedbackDefinitions(GetFeedbacksList(this))
 	}
@@ -255,10 +297,7 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 	 * Processes a feedback state.
 	 */
 	public feedback(feedback: CompanionFeedbackEvent): CompanionFeedbackResult {
-		if (this.websocket !== undefined) {
 			return ExecuteFeedback(this, feedback)
-		}
-		return {}
 	}
 }
 

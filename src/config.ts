@@ -5,6 +5,7 @@ export interface DeviceConfig {
 	host?: string
 	username?: string
 	password: string
+	protocol: string
 }
 
 export function GetConfigFields(self: InstanceSkel<DeviceConfig>): SomeCompanionConfigField[] {
@@ -35,7 +36,15 @@ export function GetConfigFields(self: InstanceSkel<DeviceConfig>): SomeCompanion
 			id: 'password',
 			label: 'Password',
 			width: 6,
-			regex: self.REGEX_SOMETHING
+			default: ''
+		},
+		{
+			type: 'dropdown',
+			id: 'protocol',
+			label: 'Connection protocol',
+			width: 6,
+			choices: [{id: 'websocket', label: 'Websocket'},{id: 'ssh', label: 'ssh'}],
+			default: 'websocket'
 		}
 	]
 }
