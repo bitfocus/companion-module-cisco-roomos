@@ -141,25 +141,25 @@ function SourceIdNumber(): CompanionInputFieldNumber {
 export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): CompanionActions {
 	const actions: CompanionActions = {}
 
-	// actions[ActionId.CustomConfiguration] = {
-	// 	label: 'Custom xConfiguration',
-	// 	options: [
-	// 		{
-	// 			type: 'textinput',
-	// 			label: 'Path (split items with ,)',
-	// 			id: 'path',
-	// 			default: 'Configuration,Conference,AutoAnswer',
-	// 			regex: self.REGEX_SOMETHING
-	// 		},
-	// 		{
-	// 			type: 'textinput',
-	// 			label: 'Value',
-	// 			id: 'Value',
-	// 			default: '',
-	// 			regex: self.REGEX_SOMETHING
-	// 		}
-	// 	]
-	// }
+	actions[ActionId.CustomConfiguration] = {
+		label: 'Custom xConfiguration',
+		options: [
+			{
+				type: 'textinput',
+				label: 'Path (use spaces)',
+				id: 'path',
+				default: 'Conference AutoAnswer Mode',
+				regex: self.REGEX_SOMETHING
+			},
+			{
+				type: 'textinput',
+				label: 'Value',
+				id: 'Value',
+				default: '',
+				regex: self.REGEX_SOMETHING
+			}
+		]
+	}
 	// actions[ActionId.CustomCommand] = {
 	// 	label: 'Custom xCommand',
 	// 	options: [
@@ -167,14 +167,14 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 	// 			type: 'textinput',
 	// 			label: 'Method',
 	// 			id: 'Method',
-	// 			default: 'xCommand/...',
+	// 			default: 'Dial',
 	// 			regex: self.REGEX_SOMETHING
 	// 		},
 	// 		{
 	// 			type: 'textinput',
-	// 			label: 'Params (Put in JSON)',
+	// 			label: 'Params (Put in JSON format)',
 	// 			id: 'Params',
-	// 			default: '{Key:Value}',
+	// 			default: "{Number: '0123456789'}",
 	// 			regex: self.REGEX_SOMETHING
 	// 		}
 	// 	]
@@ -795,15 +795,13 @@ export async function HandleAction(
 		const actionId = action.action as ActionId
 		switch (actionId) {
 			case ActionId.CustomConfiguration: {
-				// command.id = '0'
-				// command.method = 'xSet'
-				// command.params = { Path: opt.path?.toString().split(','), Value: opt.Value }
+				instance.xapi?.config.set(`'${opt.path}'`, String(opt.Value))
 				break
 			}
 			case ActionId.CustomCommand: {
-				// command.id = '0'
-				// command.method = String(opt.Method)
-				// command.params = JSON.parse(String(opt.Params))
+				console.log(`'${String(opt.Method)}', ${JSON.parse(JSON.stringify(opt.Params))}`);
+				// instance.xapi?.command('Dial', { Number: '1638403799@meet24.webex.com'}).catch((e: unknown) => instance.log('warn', `Webex: Custom command failed: ${e}`))
+				instance.xapi?.command(`'${String(opt.Method)}'`, JSON.parse(JSON.stringify(opt.Params))).catch((e: unknown) => instance.log('warn', `Webex: Custom command failed: ${e}`))
 				break
 			}
 			case ActionId.Dial: {

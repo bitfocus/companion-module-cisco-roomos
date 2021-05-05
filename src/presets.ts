@@ -240,8 +240,8 @@ export function GetPresetsList(instance: InstanceSkel<DeviceConfig>): CompanionP
 			{
 				action: ActionId.CustomConfiguration,
 				options: {
-					path: 'Configuration,Conference,AutoAnswer',
-					Value: ''
+					path: 'Conference AutoAnswer Mode',
+					Value: 'On'
 				}
 			}
 		]
@@ -261,8 +261,8 @@ export function GetPresetsList(instance: InstanceSkel<DeviceConfig>): CompanionP
 			{
 				action: ActionId.CustomCommand,
 				options: {
-					Method: 'xCommand/...',
-					Params: '{Key:Value}'
+					Method: 'Dial',
+					Params: "{Number: '123456789@meet2.webex.com'}"
 				}
 			}
 		]
