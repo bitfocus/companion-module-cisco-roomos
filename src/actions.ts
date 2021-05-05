@@ -141,44 +141,44 @@ function SourceIdNumber(): CompanionInputFieldNumber {
 export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): CompanionActions {
 	const actions: CompanionActions = {}
 
-	actions[ActionId.CustomConfiguration] = {
-		label: 'Custom xConfiguration',
-		options: [
-			{
-				type: 'textinput',
-				label: 'Path (split items with ,)',
-				id: 'path',
-				default: 'Configuration,Conference,AutoAnswer',
-				regex: self.REGEX_SOMETHING
-			},
-			{
-				type: 'textinput',
-				label: 'Value',
-				id: 'Value',
-				default: '',
-				regex: self.REGEX_SOMETHING
-			}
-		]
-	}
-	actions[ActionId.CustomCommand] = {
-		label: 'Custom xCommand',
-		options: [
-			{
-				type: 'textinput',
-				label: 'Method',
-				id: 'Method',
-				default: 'xCommand/...',
-				regex: self.REGEX_SOMETHING
-			},
-			{
-				type: 'textinput',
-				label: 'Params (Put in JSON)',
-				id: 'Params',
-				default: '{Key:Value}',
-				regex: self.REGEX_SOMETHING
-			}
-		]
-	}
+	// actions[ActionId.CustomConfiguration] = {
+	// 	label: 'Custom xConfiguration',
+	// 	options: [
+	// 		{
+	// 			type: 'textinput',
+	// 			label: 'Path (split items with ,)',
+	// 			id: 'path',
+	// 			default: 'Configuration,Conference,AutoAnswer',
+	// 			regex: self.REGEX_SOMETHING
+	// 		},
+	// 		{
+	// 			type: 'textinput',
+	// 			label: 'Value',
+	// 			id: 'Value',
+	// 			default: '',
+	// 			regex: self.REGEX_SOMETHING
+	// 		}
+	// 	]
+	// }
+	// actions[ActionId.CustomCommand] = {
+	// 	label: 'Custom xCommand',
+	// 	options: [
+	// 		{
+	// 			type: 'textinput',
+	// 			label: 'Method',
+	// 			id: 'Method',
+	// 			default: 'xCommand/...',
+	// 			regex: self.REGEX_SOMETHING
+	// 		},
+	// 		{
+	// 			type: 'textinput',
+	// 			label: 'Params (Put in JSON)',
+	// 			id: 'Params',
+	// 			default: '{Key:Value}',
+	// 			regex: self.REGEX_SOMETHING
+	// 		}
+	// 	]
+	// }
 	actions[ActionId.Dial] = {
 		label: 'Call: Dial',
 		options: [
@@ -793,63 +793,47 @@ export async function HandleAction(
 
 	try {
 		const actionId = action.action as ActionId
-		let command = {
-			jsonrpc: '2.0',
-			id: '0',
-			method: '',
-			params: {}
-		}
-
 		switch (actionId) {
 			case ActionId.CustomConfiguration: {
-				command.id = '0'
-				command.method = 'xSet'
-				command.params = { Path: opt.path?.toString().split(','), Value: opt.Value }
+				// command.id = '0'
+				// command.method = 'xSet'
+				// command.params = { Path: opt.path?.toString().split(','), Value: opt.Value }
 				break
 			}
 			case ActionId.CustomCommand: {
-				command.id = '0'
-				command.method = String(opt.Method)
-				command.params = JSON.parse(String(opt.Params))
+				// command.id = '0'
+				// command.method = String(opt.Method)
+				// command.params = JSON.parse(String(opt.Params))
 				break
 			}
 			case ActionId.Dial: {
-				command.id = '1'
-				command.method = 'xCommand/Dial'
-				command.params = { Number: opt.number }
+				instance.xapi?.Command.dial({ Number: opt.number }).catch((e: unknown) =>
+					instance.log('warn', `Webex: Dial failed: ${e}`)
+				)
 				break
 			}
 			case ActionId.Disconnect: {
 				const callId = parseInt(String(opt.CallId))
-
-				command.id = '2'
-				command.method = 'xCommand/Call/Disconnect'
-				command.params = { CallId: callId }
+				instance.xapi?.Command.Call.disconnect({ CallId: callId }).catch((e: unknown) =>
+					instance.log('warn', `Webex: Dial failed: ${e}`)
+				)
 				break
 			}
 			case ActionId.Accept: {
-				command.id = '3'
-				command.method = 'xCommand/Call/Accept'
-				command.params = {}
+				instance.xapi?.Command.Call.Accept() // If no ID is passed all are accepted
 				break
 			}
 			case ActionId.AutoAnswerDelay: {
 				const delay = parseInt(String(opt.Delay))
-				command.id = '110'
-				command.method = 'xSet'
-				command.params = { Path: ['Configuration', 'Conference', 'AutoAnswer', 'Delay'], Value: delay }
+				instance.xapi?.Config.Conference.AutoAnswer.Delay.set(delay)
 				break
 			}
 			case ActionId.AutoAnswerMute: {
-				command.id = '110'
-				command.method = 'xSet'
-				command.params = { Path: ['Configuration', 'Conference', 'AutoAnswer', 'Mute'], Value: opt.Mute }
+				instance.xapi?.Config.Conference.AutoAnswer.Mute.set(opt.Mute)
 				break
 			}
 			case ActionId.AutoAnswerMode: {
-				command.id = '110'
-				command.method = 'xSet'
-				command.params = { Path: ['Configuration', 'Conference', 'AutoAnswer', 'Mode'], Value: opt.Mode }
+				instance.xapi?.Config.Conference.AutoAnswer.Mode.set(opt.Mode)
 				break
 			}
 			case ActionId.Volume: {
@@ -868,76 +852,64 @@ export async function HandleAction(
 				break
 			}
 			case ActionId.MusicMode: {
-				command.id = '123'
 				opt.MusicMode == 'On'
-					? (command.method = 'xCommand/Audio/Microphones/MusicMode/Start')
-					: (command.method = 'xCommand/Audio/Microphones/MusicMode/Stop')
+					? instance.xapi?.Command.Audio.Microphones.MusicMode.Start()
+					: instance.xapi?.Command.Audio.Microphones.MusicMode.Stop()
 				break
 			}
 			case ActionId.MicrophoneNoiseRemoval: {
-				command.id = '124'
 				opt.NoiseRemoval == 'On'
-					? (command.method = `xCommand/Audio/Microphone/${opt.Input}/EchoControl/NoiseReduction/On`)
-					: (command.method = `xCommand/Audio/Microphone/${opt.Input}/EchoControl/NoiseReduction/Off`)
+					? instance.xapi?.Command.Audio.Microphone[1].EchoControl.NoiseReduction.On()
+					: instance.xapi?.Command.Audio.Microphone[1].EchoControl.NoiseReduction.Off()
 				break
 			}
 			case ActionId.Presentation: {
 				const connectorId = parseInt(String(opt.ConnectorId))
-				let instance = null
+				let instances = null
 				let presentationSource = null
 				if (String(opt.Instance) == 'New') {
-					instance = String(opt.Instance)
-				} else instance = parseInt(String(opt.Instance))
+					instances = String(opt.Instance)
+				} else instances = parseInt(String(opt.Instance))
 
 				if (String(opt.PresentationSource) == 'None') {
 					presentationSource = String(opt.PresentationSource)
 				} else presentationSource = parseInt(String(opt.PresentationSource))
 
-				command.id = '125'
-				command.method = `xCommand/Presentation/Start`
-				command.params = {
+				instance.xapi?.Command.Presentation.start({
 					ConnectorId: connectorId,
-					Instance: instance,
+					Instance: instances,
 					Layout: opt.Layout,
 					PresentationSource: presentationSource,
 					SendingMode: opt.SendingMode
-				}
+				})
 				break
 			}
 			case ActionId.VideoMatrix: {
 				const sourceId = parseInt(String(opt.SourceId))
-
-				command.id = '126'
-				command.method = 'xCommand/Video/Matrix/Assign'
-				command.params = {
+				instance.xapi?.Command.Video.Matrix.assign({
 					Layout: opt.Layout,
 					Mode: opt.Mode,
 					Output: opt.Output,
 					RemoteMain: opt.RemoteMain,
 					SourceId: sourceId
-				}
+				})
 				break
 			}
 			case ActionId.CameraPreset: {
 				const preset = parseInt(String(opt.PresetId))
-				command.id = '127'
-				command.method = 'xCommand/Camera/Preset/Activate'
-				command.params = { PresetId: preset }
+				instance.xapi?.Command.Camera.Preset.Activate({ PresetId: preset })
 				break
 			}
 			case ActionId.SetMainVideoSource: {
 				const connectorId = parseInt(String(opt.ConnectorId))
 				const sourceId = parseInt(String(opt.SourceId))
-
-				command.id = '128'
-				command.method = 'xCommand/Video/Input/SetMainVideoSource'
-				command.params = {
+				instance.xapi?.Command.Video.Input.SetMainVideoSource({
 					ConnectorId: connectorId,
 					Layout: opt.Layout,
 					PIPPosition: opt.PIPPosition,
 					PIPSize: opt.PIPSize,
 					SourceId: sourceId
-				}
+				})
 				break
 			}
 			case ActionId.CameraPositionSet: {
@@ -947,10 +919,7 @@ export async function HandleAction(
 				const roll = parseInt(String(opt.Roll))
 				const tilt = parseInt(String(opt.Tilt))
 				const zoom = parseInt(String(opt.Zoom))
-
-				command.id = '129'
-				command.method = 'xCommand/Camera/PositionSet'
-				command.params = {
+				instance.xapi?.Command.Camera.PositionSet({
 					CameraId: cameraId,
 					Focus: focus,
 					Lens: opt.Lens,
@@ -958,21 +927,17 @@ export async function HandleAction(
 					Roll: roll,
 					Tilt: tilt,
 					Zoom: zoom
-				}
+				})
 				break
 			}
 			case ActionId.VideoMatrixReset: {
 				const output = parseInt(String(opt.Output))
-				command.id = '130'
-				command.method = 'xCommand/Video/Matrix/Reset'
-				command.params = { Output: output }
+				instance.xapi?.Command.Video.Matrix.Reset({ Output: output })
 				break
 			}
 			case ActionId.TriggerAutofocus: {
 				const cameraId = parseInt(String(opt.CameraId))
-				command.id = '131'
-				command.method = 'xCommand/Camera/TriggerAutofocus'
-				command.params = { CameraId: cameraId }
+				instance.xapi?.Command.Camera.TriggerAutofocus({ CameraId: cameraId })
 				break
 			}
 			case ActionId.CameraRamp: {
@@ -980,10 +945,7 @@ export async function HandleAction(
 				const panSpeed = parseInt(String(opt.PanSpeed))
 				const tiltSpeed = parseInt(String(opt.TiltSpeed))
 				const zoomSpeed = parseInt(String(opt.ZoomSpeed))
-
-				command.id = '132'
-				command.method = 'xCommand/Camera/Ramp'
-				command.params = {
+				instance.xapi?.Command.Camera.Ramp({
 					CameraId: cameraId,
 					Pan: opt.Pan,
 					PanSpeed: panSpeed,
@@ -992,112 +954,84 @@ export async function HandleAction(
 					Zoom: opt.Zoom,
 					ZoomSpeed: zoomSpeed,
 					Focus: opt.Focus
-				}
+				})
 				break
 			}
 			case ActionId.DTMFSend: {
 				const callId = parseInt(String(opt.CallId))
-				command.id = '133'
-				command.method = 'xCommand/Call/DTMFSend'
-				command.params = {
+				instance.xapi?.Command.Call.DTMFSend({
 					CallId: callId,
 					DTMFString: opt.DTMFString
-				}
+				})
 				break
 			}
 			case ActionId.ConferenceDoNotDisturbActivate: {
 				const timeout = parseInt(String(opt.Timeout))
-				command.id = '134'
-				command.method = 'xCommand/Conference/DoNotDisturb/Activate'
-				command.params = {
+				instance.xapi?.Command.Conference.DoNotDisturb.Activate({
 					Timeout: timeout
-				}
+				})
 				break
 			}
 			case ActionId.ConferenceDoNotDisturbDeActivate: {
-				command.id = '135'
-				command.method = 'xCommand/Conference/DoNotDisturb/Deactivate'
+				instance.xapi?.Command.Conference.DoNotDisturb.Deactivate()
 				break
 			}
 			case ActionId.SelfView: {
-				command.id = '136'
-				command.method = 'xCommand/Video/Selfview/Set'
-				command.params = {
+				instance.xapi?.Command.Video.SelfView({
 					Mode: opt.Mode,
 					FullscreenMode: opt.FullscreenMode,
 					PIPPosition: opt.PIPPosition,
 					OnMonitorRole: opt.OnMonitorRole
-				}
+				})
 				break
 			}
 			case ActionId.OSDKeyClick: {
-				command.id = '137'
-				command.method = 'xCommand/UserInterface/OSD/Key/Click'
-				command.params = {
+				instance.xapi?.Command.UserInterface.OSD.Key.Click({
 					Key: opt.Key
-				}
+				})
 				break
 			}
 			case ActionId.OSDKeyPress: {
-				command.id = '138'
-				command.method = 'xCommand/UserInterface/OSD/Key/Press'
-				command.params = {
+				instance.xapi?.Command.UserInterface.OSD.Key.Press({
 					Key: opt.Key
-				}
+				})
 				break
 			}
 			case ActionId.OSDKeyRelease: {
-				command.id = '139'
-				command.method = 'xCommand/UserInterface/OSD/Key/Release'
-				command.params = {
+				instance.xapi?.Command.UserInterface.OSD.Key.Release({
 					Key: opt.Key
-				}
+				})
 				break
 			}
 			case ActionId.CameraBackground: {
-				command.id = '140'
-				command.method = 'xCommand/Cameras/Background/Set'
-				command.params = {
+				instance.xapi?.Command.Cameras.Background.Set({
 					Image: opt.Image,
 					Mode: opt.Mode
-				}
+				})
 				break
 			}
 			case ActionId.VideoMonitors: {
-				command.id = '141'
-				command.method = 'xSet'
-				command.params = { Path: ['Configuration', 'Video', 'Monitors'], Value: opt.Monitors }
+				instance.xapi?.Config.Video.Monitors.set(opt.Monitors)
 				break
 			}
 			case ActionId.VideoOutputMonitorRole: {
 				const connector = parseInt(String(opt.Connector))
-				command.id = '142'
-				command.method = 'xSet'
-				command.params = {
-					Path: ['Configuration', 'Video', 'Output', 'Connector', connector, 'MonitorRole'],
-					Value: opt.MonitorRole
-				}
+				instance.xapi?.Config.Video.Output.Connector[connector].MonitorRole.set(opt.MonitorRole)
 				break
 			}
 			case ActionId.MessageSend: {
-				command.id = '143'
-				command.method = 'xCommand/Message/Send'
-				command.params = {
+				instance.xapi?.Command.Message.Send({
 					Text: opt.Text
-				}
+				})
 				break
 			}
 			case ActionId.StandbyControl: {
-				command.id = '144'
-				command.method = 'xSet'
-				command.params = { Path: ['xConfiguration', 'Standby', 'Control'], Value: opt.Standby }
+				instance.xapi?.Config.Standby.Control.set(opt.Standby)
 				break
 			}
 			case ActionId.StandbyDelay: {
 				const delay = parseInt(String(opt.Delay))
-				command.id = '145'
-				command.method = 'xSet'
-				command.params = { Path: ['xConfiguration', 'Standby', 'Delay'], Value: delay }
+				instance.xapi?.Config.Standby.Delay.set(delay)
 				break
 			}
 		}
