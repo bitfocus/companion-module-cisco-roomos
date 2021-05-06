@@ -160,25 +160,25 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 			}
 		]
 	}
-	// actions[ActionId.CustomCommand] = {
-	// 	label: 'Custom xCommand',
-	// 	options: [
-	// 		{
-	// 			type: 'textinput',
-	// 			label: 'Method',
-	// 			id: 'Method',
-	// 			default: 'Dial',
-	// 			regex: self.REGEX_SOMETHING
-	// 		},
-	// 		{
-	// 			type: 'textinput',
-	// 			label: 'Params (Put in JSON format)',
-	// 			id: 'Params',
-	// 			default: "{Number: '0123456789'}",
-	// 			regex: self.REGEX_SOMETHING
-	// 		}
-	// 	]
-	// }
+	actions[ActionId.CustomCommand] = {
+		label: 'Custom xCommand',
+		options: [
+			{
+				type: 'textinput',
+				label: 'Method',
+				id: 'Method',
+				default: 'Dial',
+				regex: self.REGEX_SOMETHING
+			},
+			{
+				type: 'textinput',
+				label: 'Params (Put in JSON format)',
+				id: 'Params',
+				default: '{"Number":"123456789@meet24.webex.com"}',
+				regex: self.REGEX_SOMETHING
+			}
+		]
+	}
 	actions[ActionId.Dial] = {
 		label: 'Call: Dial',
 		options: [
@@ -799,9 +799,13 @@ export async function HandleAction(
 				break
 			}
 			case ActionId.CustomCommand: {
-				console.log(`'${String(opt.Method)}', ${JSON.parse(JSON.stringify(opt.Params))}`);
-				// instance.xapi?.command('Dial', { Number: '1638403799@meet24.webex.com'}).catch((e: unknown) => instance.log('warn', `Webex: Custom command failed: ${e}`))
-				instance.xapi?.command(`'${String(opt.Method)}'`, JSON.parse(JSON.stringify(opt.Params))).catch((e: unknown) => instance.log('warn', `Webex: Custom command failed: ${e}`))
+				try {
+					instance.xapi
+						?.command(`'${opt.Method}'`, JSON.parse(String(opt.Params)))
+						.catch((e: any) => instance.log('warn', `Webex: Dial failed: ${e.message}`))
+				} catch (error) {
+					instance.log('error', 'Malformed JSON string in custom xCommand')
+				}
 				break
 			}
 			case ActionId.Dial: {

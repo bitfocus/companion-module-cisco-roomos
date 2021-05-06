@@ -262,7 +262,7 @@ export function GetPresetsList(instance: InstanceSkel<DeviceConfig>): CompanionP
 				action: ActionId.CustomCommand,
 				options: {
 					Method: 'Dial',
-					Params: "{Number: '123456789@meet2.webex.com'}"
+					Params: '{"Number":"123456789@meet24.webex.com"}'
 				}
 			}
 		]
