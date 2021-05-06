@@ -43,8 +43,8 @@ export function GetConfigFields(self: InstanceSkel<DeviceConfig>): SomeCompanion
 			id: 'protocol',
 			label: 'Connection protocol',
 			width: 6,
-			choices: [{id: 'websocket', label: 'Websocket'},{id: 'ssh', label: 'ssh'}],
-			default: 'websocket'
+			choices: [{id: 'wss', label: 'Websocket'},{id: 'ssh', label: 'ssh'}],
+			default: 'ssh'
 		}
 	]
 }

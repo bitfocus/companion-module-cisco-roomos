@@ -58,12 +58,12 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 		}
 
 		try {
-			const { host, username, password } = this.config
-
-			this.xapi = XAPIConnect('ssh://' + host, {
+			const { host, username, password, protocol } = this.config
+			this.xapi = XAPIConnect(`${protocol}://` + host, {
 				username,
 				password
 			})
+		
 			this.connecting = true
 			this.status(this.STATUS_WARNING, 'Connecting')
 
