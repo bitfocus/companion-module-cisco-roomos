@@ -17,6 +17,7 @@ import { InitVariables } from './variables'
 class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 	private connected: boolean
 	private connecting: boolean
+	private timer?: NodeJS.Timer
 
 	constructor(system: CompanionSystem, id: string, config: DeviceConfig) {
 		super(system, id, config)
@@ -28,6 +29,7 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 	public init(): void {
 		this.status(this.STATUS_UNKNOWN)
 		this.updateConfig(this.config)
+		this.timer = setInterval(() => this.tick(), 5000)
 	}
 	/**
 	 * INTERNAL: Setup connection
@@ -35,7 +37,8 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 	 * @access protected
 	 */
 	public tick(): void {
-		console.log('Tick:', { connected: this.connected, connecting: this.connecting, host: this.config?.host })
+		if (!this.connected)
+			console.log('Tick:', { connected: this.connected, connecting: this.connecting, host: this.config?.host })
 		if (!this.connected && !this.connecting) {
 			if (this.config?.host) {
 				this.initSSH()
@@ -44,7 +47,7 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 	}
 	// Override base types to make types stricter
 	public checkFeedbacks(feedbackId?: FeedbackId): void {
-			super.checkFeedbacks(feedbackId)
+		super.checkFeedbacks(feedbackId)
 	}
 	/**
 	 * Setup connection for SSH connection
@@ -63,7 +66,7 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 				username,
 				password
 			})
-		
+
 			this.connecting = true
 			this.status(this.STATUS_WARNING, 'Connecting')
 
@@ -289,15 +292,26 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 	 * Clean up the instance before it is destroyed.
 	 */
 	public destroy(): void {
+		try {
+			if (this.xapi !== undefined) {
+				this.xapi.close()
+			}
+		} catch (e) {
+			// Ignore
+		}
 		this.debug('destroy', this.id)
-		this.websocket?.close()
+
+		if (this.timer !== undefined) {
+			clearInterval(this.timer)
+			this.timer = undefined
+		}
 	}
 
 	/**
 	 * Processes a feedback state.
 	 */
 	public feedback(feedback: CompanionFeedbackEvent): CompanionFeedbackResult {
-			return ExecuteFeedback(this, feedback)
+		return ExecuteFeedback(this, feedback)
 	}
 }
 
