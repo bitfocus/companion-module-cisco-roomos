@@ -46,8 +46,8 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 		}
 	}
 	// Override base types to make types stricter
-	public checkFeedbacks(feedbackId?: FeedbackId): void {
-		super.checkFeedbacks(feedbackId)
+	public checkFeedbacks(...feedbackTypes: FeedbackId[]): void {
+		super.checkFeedbacks(...feedbackTypes)
 	}
 	/**
 	 * Setup connection for SSH connection
