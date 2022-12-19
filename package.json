@@ -1,6 +1,6 @@
 {
 	"name": "cisco-webex-websocket",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"api_version": "1.0.0",
 	"description": "See [HELP.md](./HELP.md) and [LICENSE](./LICENSE)",
 	"main": "dist/index.js",
@@ -27,7 +27,7 @@
 	"homepage": "https://github.com/bitfocus/companion-module-cisco-webex-websocket#readme",
 	"scripts": {
 		"dev": "yarn build:watch",
-		"build": "npx rimraf dist && npx typescript@~4.0.5 -p tsconfig.build.json",
+		"build": "npx rimraf dist && npx --package=typescript@~4.0.5 -c 'tsc -p tsconfig.build.json'",
 		"build:main": "tsc -p tsconfig.build.json",
 		"build:watch": "tsc -p tsconfig.build.json --watch",
 		"lint": "eslint . --ext .ts",
