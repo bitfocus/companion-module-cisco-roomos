@@ -1,74 +1,75 @@
-import InstanceSkel = require('../../../instance_skel')
-import { CompanionVariable } from '../../../instance_skel_types'
+import { CompanionVariableDefinition, InstanceBase } from '@companion-module/base'
 import { DeviceConfig } from './config'
 
-export function InitVariables(instance: InstanceSkel<DeviceConfig>): void {
-	const variables: CompanionVariable[] = []
+export function InitVariables(instance: InstanceBase<DeviceConfig>): void {
+	const variables: CompanionVariableDefinition[] = []
 
 	variables.push({
-		label: `Number of outgoing calls`,
-		name: `outgoing_calls`
+		name: `Number of outgoing calls`,
+		variableId: `outgoing_calls`
 	})
 	variables.push({
-		label: `Number of ingoing calls`,
-		name: `ingoing_calls`
+		name: `Number of ingoing calls`,
+		variableId: `ingoing_calls`
 	})
 	variables.push({
-		label: `Number of ingoing actively ringing calls`,
-		name: `ingoing_ringing_calls`
+		name: `Number of ingoing actively ringing calls`,
+		variableId: `ingoing_ringing_calls`
 	})
 	variables.push({
-		label: `Auto answer activated`,
-		name: `autoanswer_mode`
+		name: `Auto answer activated`,
+		variableId: `autoanswer_mode`
 	})
 	variables.push({
-		label: `Incoming call will be muted (on)`,
-		name: `autoanswer_mute`
+		name: `Incoming call will be muted (on)`,
+		variableId: `autoanswer_mute`
 	})
 	variables.push({
-		label: `Autoanswer delay`,
-		name: `autoanswer_delay`
+		name: `Autoanswer delay`,
+		variableId: `autoanswer_delay`
 	})
 	variables.push({
-		label: `System Time on connection`,
-		name: `systemtime`
+		name: `System Time on connection`,
+		variableId: `systemtime`
 	})
 	variables.push({
-		label: 'Audio: Selected device',
-		name: 'selected_device'
+		name: 'Audio: Selected device',
+		variableId: 'selected_device'
 	})
 	variables.push({
-		label: 'Audio: Volume',
-		name: 'volume'
+		name: 'Audio: Volume',
+		variableId: 'volume'
 	})
 	variables.push({
-		label: 'Audio: Microphones Music Mode',
-		name: 'microphones_musicmode'
+		name: 'Audio: Microphones Music Mode',
+		variableId: 'microphones_musicmode'
 	})
 	variables.push({
-		label: 'Audio: Microphones Mute',
-		name: 'microphones_mute'
+		name: 'Audio: Microphones Mute',
+		variableId: 'microphones_mute'
 	})
 	variables.push({
-		label: 'Audio: connectors mute',
-		name: 'audio_connector_mute'
+		name: 'Audio: connectors mute',
+		variableId: 'audio_connector_mute'
 	})
 	variables.push({
-		label: 'Conference: Do not disturb',
-		name: 'DoNotDisturb'
+		name: 'Conference: Do not disturb',
+		variableId: 'DoNotDisturb'
 	})
 	variables.push({
-		label: 'Conference: Presentation',
-		name: 'Presentation'
+		name: 'Conference: Presentation',
+		variableId: 'Presentation'
 	})
 	variables.push({
-		label: 'Conference: SelectedCallProtocol',
-		name: 'SelectedCallProtocol'
+		name: 'Conference: SelectedCallProtocol',
+		variableId: 'SelectedCallProtocol'
 	})
 
-	instance.setVariable('outgoing_calls', '0')
-	instance.setVariable('ingoing_calls', '0')
-	instance.setVariable('ingoing_ringing_calls', '0')
+	instance.setVariableValues({
+		outgoing_calls: '0',
+		ingoing_calls: '0',
+		ingoing_ringing_calls: '0'
+	})
 
 	instance.setVariableDefinitions(variables)
 }

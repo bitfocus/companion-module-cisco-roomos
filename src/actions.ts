@@ -1,12 +1,11 @@
 import { WebexInstanceSkel } from './webex'
-
-import {
-	CompanionActionEvent,
-	CompanionActions,
-	CompanionInputFieldDropdown,
-	CompanionInputFieldNumber
-} from '../../../instance_skel_types'
 import { DeviceConfig } from './config'
+import {
+	CompanionActionDefinitions,
+	CompanionInputFieldDropdown,
+	CompanionInputFieldNumber,
+	Regex
+} from '@companion-module/base'
 
 export enum ActionId {
 	CustomConfiguration = 'custom_configuration',
@@ -138,61 +137,80 @@ function SourceIdNumber(): CompanionInputFieldNumber {
 	}
 }
 
-export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): CompanionActions {
-	const actions: CompanionActions = {}
+export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): CompanionActionDefinitions {
+	const actions: CompanionActionDefinitions = {}
 
 	actions[ActionId.CustomConfiguration] = {
-		label: 'Custom xConfiguration',
+		name: 'Custom xConfiguration',
 		options: [
 			{
 				type: 'textinput',
 				label: 'Path (use spaces)',
 				id: 'path',
 				default: 'Conference AutoAnswer Mode',
-				regex: self.REGEX_SOMETHING
+				regex: Regex.SOMETHING
 			},
 			{
 				type: 'textinput',
 				label: 'Value',
 				id: 'Value',
 				default: '',
-				regex: self.REGEX_SOMETHING
+				regex: Regex.SOMETHING
 			}
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			await instance.xapi?.config.set(`'${opt.path}'`, String(opt.Value))
+		}
 	}
 	actions[ActionId.CustomCommand] = {
-		label: 'Custom xCommand',
+		name: 'Custom xCommand',
 		options: [
 			{
 				type: 'textinput',
 				label: 'Method',
 				id: 'Method',
 				default: 'Dial',
-				regex: self.REGEX_SOMETHING
+				regex: Regex.SOMETHING
 			},
 			{
 				type: 'textinput',
 				label: 'Params (Put in JSON format)',
 				id: 'Params',
 				default: '{"Number":"123456789@meet24.webex.com"}',
-				regex: self.REGEX_SOMETHING
+				regex: Regex.SOMETHING
 			}
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			await instance.xapi
+				?.command(`'${opt.Method}'`, JSON.parse(String(opt.Params)))
+				.catch((e: any) => instance.log('warn', `Webex: Dial failed: ${e.message}`))
+		}
 	}
 	actions[ActionId.Dial] = {
-		label: 'Call: Dial',
+		name: 'Call: Dial',
 		options: [
 			{
 				type: 'textinput',
 				label: 'Address to call',
 				id: 'number',
 				default: '',
-				regex: self.REGEX_SOMETHING
+				regex: Regex.SOMETHING
 			}
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			await instance.xapi?.Command.dial({ Number: opt.number }).catch((e: unknown) =>
+				instance.log('warn', `Webex: Dial failed: ${e}`)
+			)
+		}
 	}
 	actions[ActionId.Disconnect] = {
-		label: 'Call: Disconnect',
+		name: 'Call: Disconnect',
 		options: [
 			{
 				label: 'Call ID 0 = All',
@@ -202,34 +220,61 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				max: 255,
 				default: 0
 			}
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			const callId = parseInt(String(opt.CallId))
+			await instance.xapi?.Command.Call.disconnect({ CallId: callId }).catch((e: unknown) =>
+				instance.log('warn', `Webex: Dial failed: ${e}`)
+			)
+		}
 	}
 	actions[ActionId.Accept] = {
-		label: 'Call: Accept all incoming calls',
-		options: []
+		name: 'Call: Accept all incoming calls',
+		options: [],
+		callback: async (): Promise<void> => {
+			await instance.xapi?.Command.Call.Accept() // If no ID is passed all are accepted
+		}
 	}
 	actions[ActionId.AutoAnswerMode] = {
-		label: 'Call: Configure auto-answer mode',
-		options: [WebexOnOffBooleanDropdown('Mode', 'Mode')]
+		name: 'Call: Configure auto-answer mode',
+		options: [WebexOnOffBooleanDropdown('Mode', 'Mode')],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			await instance.xapi?.Config.Conference.AutoAnswer.Mode.set(opt.Mode)
+		}
 	}
 	actions[ActionId.AutoAnswerMute] = {
-		label: 'Call: Configure auto-answer mute',
-		options: [WebexOnOffBooleanDropdown('Mute', 'Mute')]
+		name: 'Call: Configure auto-answer mute',
+		options: [WebexOnOffBooleanDropdown('Mute', 'Mute')],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			await instance.xapi?.Config.Conference.AutoAnswer.Mute.set(opt.Mute)
+		}
 	}
 	actions[ActionId.AutoAnswerDelay] = {
-		label: 'Call: Configure auto-answer delay',
+		name: 'Call: Configure auto-answer delay',
 		options: [
 			{
 				type: 'textinput',
 				default: '0',
 				label: 'Delay (in seconds)',
 				id: 'Delay',
-				regex: self.REGEX_NUMBER
+				regex: Regex.NUMBER
 			}
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			const delay = parseInt(String(opt.Delay))
+			await instance.xapi?.Config.Conference.AutoAnswer.Delay.set(delay)
+		}
 	}
 	actions[ActionId.Volume] = {
-		label: 'Audio: Volume',
+		name: 'Audio: Volume',
 		options: [
 			{
 				type: 'number',
@@ -239,22 +284,50 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				max: 100,
 				id: 'volume'
 			}
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			const volume = parseInt(String(opt.volume))
+			await instance.xapi?.Command.Audio.Volume.Set({ Level: volume })
+		}
 	}
 	actions[ActionId.MicrophoneMute] = {
-		label: 'Audio: Microphones Mute',
-		options: [WebexOnOffBooleanDropdown('Mute', 'Mute')]
+		name: 'Audio: Microphones Mute',
+		options: [WebexOnOffBooleanDropdown('Mute', 'Mute')],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			if (opt.Mute == 'On') {
+				await instance.xapi?.Command.Audio.Microphones.Mute()
+			} else {
+				await instance.xapi?.Command.Audio.Microphones.Unmute()
+			}
+		}
 	}
-	actions[ActionId.MicrophoneInput] = {
-		label: 'Audio: Microphone input',
-		options: []
-	}
+	// actions[ActionId.MicrophoneInput] = {
+	// 	name: 'Audio: Microphone input',
+	// 	options: [],
+	// 	callback: async (action): Promise<void> => {
+	// 		const opt = action.options
+	//		console.log('Input todo')
+	// 	}
+	// }
 	actions[ActionId.MusicMode] = {
-		label: 'Audio: Microphones Music Mode',
-		options: [WebexOnOffBooleanDropdown('MusicMode', 'MusicMode')]
+		name: 'Audio: Microphones Music Mode',
+		options: [WebexOnOffBooleanDropdown('MusicMode', 'MusicMode')],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			if (opt.MusicMode == 'On') {
+				await instance.xapi?.Command.Audio.Microphones.MusicMode.Start()
+			} else {
+				await instance.xapi?.Command.Audio.Microphones.MusicMode.Stop()
+			}
+		}
 	}
 	actions[ActionId.MicrophoneNoiseRemoval] = {
-		label: 'Audio: Microphones Noise removal',
+		name: 'Audio: Microphones Noise removal',
 		options: [
 			{
 				label: 'Input',
@@ -265,10 +338,19 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				default: 1
 			},
 			WebexOnOffBooleanDropdown('NoiseRemoval', 'NoiseRemoval')
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			if (opt.NoiseRemoval == 'On') {
+				await instance.xapi?.Command.Audio.Microphone[1].EchoControl.NoiseReduction.On()
+			} else {
+				await instance.xapi?.Command.Audio.Microphone[1].EchoControl.NoiseReduction.Off()
+			}
+		}
 	}
 	actions[ActionId.Presentation] = {
-		label: 'Presentation',
+		name: 'Presentation',
 		options: [
 			{
 				label: 'Start/Stop',
@@ -322,10 +404,28 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				],
 				default: 'LocalRemote'
 			}
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			const connectorId = parseInt(String(opt.ConnectorId))
+			const instances = String(opt.Instance) == 'New' ? String(opt.Instance) : parseInt(String(opt.Instance))
+			const presentationSource =
+				String(opt.PresentationSource) == 'None'
+					? String(opt.PresentationSource)
+					: parseInt(String(opt.PresentationSource))
+
+			await instance.xapi?.Command.Presentation.start({
+				ConnectorId: connectorId,
+				Instance: instances,
+				Layout: opt.Layout,
+				PresentationSource: presentationSource,
+				SendingMode: opt.SendingMode
+			})
+		}
 	}
 	actions[ActionId.VideoMatrix] = {
-		label: 'Video Matrix',
+		name: 'Video Matrix',
 		options: [
 			{
 				label: 'Layout',
@@ -364,10 +464,22 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				max: 4
 			},
 			SourceIdNumber()
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			const sourceId = parseInt(String(opt.SourceId))
+			await instance.xapi?.Command.Video.Matrix.assign({
+				Layout: opt.Layout,
+				Mode: opt.Mode,
+				Output: opt.Output,
+				RemoteMain: opt.RemoteMain,
+				SourceId: sourceId
+			})
+		}
 	}
 	actions[ActionId.CameraPreset] = {
-		label: 'Camera: Activate Camera preset',
+		name: 'Camera: Activate Camera preset',
 		options: [
 			{
 				label: 'Preset number 1-35',
@@ -377,10 +489,16 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				min: 1,
 				max: 35
 			}
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			const preset = parseInt(String(opt.PresetId))
+			await instance.xapi?.Command.Camera.Preset.Activate({ PresetId: preset })
+		}
 	}
 	actions[ActionId.SetMainVideoSource] = {
-		label: 'Set Main Video Source',
+		name: 'Set Main Video Source',
 		options: [
 			ConnectorIdNumber(),
 			{
@@ -417,10 +535,23 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				default: 'Auto'
 			},
 			SourceIdNumber()
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			const connectorId = parseInt(String(opt.ConnectorId))
+			const sourceId = parseInt(String(opt.SourceId))
+			await instance.xapi?.Command.Video.Input.SetMainVideoSource({
+				ConnectorId: connectorId,
+				Layout: opt.Layout,
+				PIPPosition: opt.PIPPosition,
+				PIPSize: opt.PIPSize,
+				SourceId: sourceId
+			})
+		}
 	}
 	actions[ActionId.CameraPositionSet] = {
-		label: 'Set camera position',
+		name: 'Set camera position',
 		options: [
 			{
 				label: 'CameraId',
@@ -482,10 +613,29 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				default: 5000,
 				id: 'Zoom'
 			}
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			const cameraId = parseInt(String(opt.CameraId))
+			const focus = parseInt(String(opt.Focus))
+			const pan = parseInt(String(opt.Pan))
+			const roll = parseInt(String(opt.Roll))
+			const tilt = parseInt(String(opt.Tilt))
+			const zoom = parseInt(String(opt.Zoom))
+			await instance.xapi?.Command.Camera.PositionSet({
+				CameraId: cameraId,
+				Focus: focus,
+				Lens: opt.Lens,
+				Pan: pan,
+				Roll: roll,
+				Tilt: tilt,
+				Zoom: zoom
+			})
+		}
 	}
 	actions[ActionId.VideoMatrixReset] = {
-		label: 'Video Matrix Reset',
+		name: 'Video Matrix Reset',
 		options: [
 			{
 				label: 'Output',
@@ -495,10 +645,16 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				default: 1,
 				id: 'Output'
 			}
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			const output = parseInt(String(opt.Output))
+			await instance.xapi?.Command.Video.Matrix.Reset({ Output: output })
+		}
 	}
 	actions[ActionId.TriggerAutofocus] = {
-		label: 'Camera trigger auto focus',
+		name: 'Camera trigger auto focus',
 		options: [
 			{
 				label: 'CameraId',
@@ -508,10 +664,16 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				max: 7,
 				default: 1
 			}
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			const cameraId = parseInt(String(opt.CameraId))
+			await instance.xapi?.Command.Camera.TriggerAutofocus({ CameraId: cameraId })
+		}
 	}
 	actions[ActionId.CameraRamp] = {
-		label: 'Set camera ramp',
+		name: 'Set camera ramp',
 		options: [
 			{
 				label: 'CameraId',
@@ -589,10 +751,28 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				default: 'Stop',
 				id: 'Focus'
 			}
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			const cameraId = parseInt(String(opt.CameraId))
+			const panSpeed = parseInt(String(opt.PanSpeed))
+			const tiltSpeed = parseInt(String(opt.TiltSpeed))
+			const zoomSpeed = parseInt(String(opt.ZoomSpeed))
+			await instance.xapi?.Command.Camera.Ramp({
+				CameraId: cameraId,
+				Pan: opt.Pan,
+				PanSpeed: panSpeed,
+				Tilt: opt.Tilt,
+				TiltSpeed: tiltSpeed,
+				Zoom: opt.Zoom,
+				ZoomSpeed: zoomSpeed,
+				Focus: opt.Focus
+			})
+		}
 	}
 	actions[ActionId.DTMFSend] = {
-		label: 'DTMF Send',
+		name: 'DTMF Send',
 		options: [
 			{
 				label: 'CallId',
@@ -608,10 +788,19 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				type: 'textinput',
 				default: ''
 			}
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			const callId = parseInt(String(opt.CallId))
+			await instance.xapi?.Command.Call.DTMFSend({
+				CallId: callId,
+				DTMFString: opt.DTMFString
+			})
+		}
 	}
 	actions[ActionId.ConferenceDoNotDisturbActivate] = {
-		label: 'Conference Do Not Disturb Activate',
+		name: 'Conference Do Not Disturb Activate',
 		options: [
 			{
 				label: 'Timeout',
@@ -621,14 +810,25 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				max: 1440,
 				default: 1
 			}
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			const timeout = parseInt(String(opt.Timeout))
+			await instance.xapi?.Command.Conference.DoNotDisturb.Activate({
+				Timeout: timeout
+			})
+		}
 	}
 	actions[ActionId.ConferenceDoNotDisturbDeActivate] = {
-		label: 'Conference Do Not Disturb deactivate',
-		options: []
+		name: 'Conference Do Not Disturb deactivate',
+		options: [],
+		callback: async (): Promise<void> => {
+			await instance.xapi?.Command.Conference.DoNotDisturb.Deactivate()
+		}
 	}
 	actions[ActionId.SelfView] = {
-		label: 'Video: Self view',
+		name: 'Video: Self view',
 		options: [
 			WebexOnOffBooleanDropdown('Mode', 'Mode'),
 			WebexOnOffBooleanDropdown('FullscreenMode', 'FullscreenMode'),
@@ -655,22 +855,53 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				],
 				default: 'First'
 			}
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			await instance.xapi?.Command.Video.SelfView({
+				Mode: opt.Mode,
+				FullscreenMode: opt.FullscreenMode,
+				PIPPosition: opt.PIPPosition,
+				OnMonitorRole: opt.OnMonitorRole
+			})
+		}
 	}
 	actions[ActionId.OSDKeyClick] = {
-		label: 'OSD Key Click',
-		options: [RemoteKeyToPressDropdown()]
+		name: 'OSD Key Click',
+		options: [RemoteKeyToPressDropdown()],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			await instance.xapi?.Command.UserInterface.OSD.Key.Click({
+				Key: opt.Key
+			})
+		}
 	}
 	actions[ActionId.OSDKeyPress] = {
-		label: 'OSD Key Press',
-		options: [RemoteKeyToPressDropdown()]
+		name: 'OSD Key Press',
+		options: [RemoteKeyToPressDropdown()],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			await instance.xapi?.Command.UserInterface.OSD.Key.Press({
+				Key: opt.Key
+			})
+		}
 	}
 	actions[ActionId.OSDKeyRelease] = {
-		label: 'OSD Key Release',
-		options: [RemoteKeyToPressDropdown()]
+		name: 'OSD Key Release',
+		options: [RemoteKeyToPressDropdown()],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			await instance.xapi?.Command.UserInterface.OSD.Key.Release({
+				Key: opt.Key
+			})
+		}
 	}
 	actions[ActionId.CameraBackground] = {
-		label: 'Set Camera background',
+		name: 'Set Camera background',
 		options: [
 			{
 				label: 'Image',
@@ -706,10 +937,18 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				],
 				default: 'Image'
 			}
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			await instance.xapi?.Command.Cameras.Background.Set({
+				Image: opt.Image,
+				Mode: opt.Mode
+			})
+		}
 	}
 	actions[ActionId.VideoMonitors] = {
-		label: 'Monitor role',
+		name: 'Monitor role',
 		options: [
 			{
 				label: 'Monitors',
@@ -725,10 +964,15 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				],
 				default: 'Auto'
 			}
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			await instance.xapi?.Config.Video.Monitors.set(opt.Monitors)
+		}
 	}
 	actions[ActionId.VideoOutputMonitorRole] = {
-		label: 'Set output connector monitor role',
+		name: 'Set output connector monitor role',
 		options: [
 			{
 				label: 'Connector',
@@ -752,10 +996,16 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				],
 				default: 'Auto'
 			}
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			const connector = parseInt(String(opt.Connector))
+			await instance.xapi?.Config.Video.Output.Connector[connector].MonitorRole.set(opt.MonitorRole)
+		}
 	}
 	actions[ActionId.MessageSend] = {
-		label: 'Send message to any listening client',
+		name: 'Send message to any listening client',
 		options: [
 			{
 				label: 'Text',
@@ -763,14 +1013,26 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				id: 'Text',
 				default: ''
 			}
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			await instance.xapi?.Command.Message.Send({
+				Text: opt.Text
+			})
+		}
 	}
 	actions[ActionId.StandbyControl] = {
-		label: 'Device standby',
-		options: [WebexOnOffBooleanDropdown('Standby', 'Standby')]
+		name: 'Device standby',
+		options: [WebexOnOffBooleanDropdown('Standby', 'Standby')],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			await instance.xapi?.Config.Standby.Control.set(opt.Standby)
+		}
 	}
 	actions[ActionId.StandbyControl] = {
-		label: 'Set Standby Delay',
+		name: 'Set Standby Delay',
 		options: [
 			{
 				label: 'Delay in minutes',
@@ -780,264 +1042,13 @@ export function GetActionsList(self: WebexInstanceSkel<DeviceConfig>): Companion
 				id: 'Delay',
 				default: 10
 			}
-		]
+		],
+		callback: async (action): Promise<void> => {
+			const opt = action.options
+
+			const delay = parseInt(String(opt.Delay))
+			await instance.xapi?.Config.Standby.Delay.set(delay)
+		}
 	}
 	return actions
-}
-
-export async function HandleAction(
-	instance: WebexInstanceSkel<DeviceConfig>,
-	action: CompanionActionEvent
-): Promise<void> {
-	const opt = action.options
-
-	try {
-		const actionId = action.action as ActionId
-		switch (actionId) {
-			case ActionId.CustomConfiguration: {
-				instance.xapi?.config.set(`'${opt.path}'`, String(opt.Value))
-				break
-			}
-			case ActionId.CustomCommand: {
-				try {
-					instance.xapi
-						?.command(`'${opt.Method}'`, JSON.parse(String(opt.Params)))
-						.catch((e: any) => instance.log('warn', `Webex: Dial failed: ${e.message}`))
-				} catch (error) {
-					instance.log('error', 'Malformed JSON string in custom xCommand')
-				}
-				break
-			}
-			case ActionId.Dial: {
-				instance.xapi?.Command.dial({ Number: opt.number }).catch((e: unknown) =>
-					instance.log('warn', `Webex: Dial failed: ${e}`)
-				)
-				break
-			}
-			case ActionId.Disconnect: {
-				const callId = parseInt(String(opt.CallId))
-				instance.xapi?.Command.Call.disconnect({ CallId: callId }).catch((e: unknown) =>
-					instance.log('warn', `Webex: Dial failed: ${e}`)
-				)
-				break
-			}
-			case ActionId.Accept: {
-				instance.xapi?.Command.Call.Accept() // If no ID is passed all are accepted
-				break
-			}
-			case ActionId.AutoAnswerDelay: {
-				const delay = parseInt(String(opt.Delay))
-				instance.xapi?.Config.Conference.AutoAnswer.Delay.set(delay)
-				break
-			}
-			case ActionId.AutoAnswerMute: {
-				instance.xapi?.Config.Conference.AutoAnswer.Mute.set(opt.Mute)
-				break
-			}
-			case ActionId.AutoAnswerMode: {
-				instance.xapi?.Config.Conference.AutoAnswer.Mode.set(opt.Mode)
-				break
-			}
-			case ActionId.Volume: {
-				const volume = parseInt(String(opt.volume))
-				instance.xapi?.Command.Audio.Volume.Set({ Level: volume })
-				break
-			}
-			case ActionId.MicrophoneMute: {
-				opt.Mute == 'On'
-					? instance.xapi?.Command.Audio.Microphones.Mute()
-					: instance.xapi?.Command.Audio.Microphones.Unmute()
-				break
-			}
-			case ActionId.MicrophoneInput: {
-				console.log('Input todo')
-				break
-			}
-			case ActionId.MusicMode: {
-				opt.MusicMode == 'On'
-					? instance.xapi?.Command.Audio.Microphones.MusicMode.Start()
-					: instance.xapi?.Command.Audio.Microphones.MusicMode.Stop()
-				break
-			}
-			case ActionId.MicrophoneNoiseRemoval: {
-				opt.NoiseRemoval == 'On'
-					? instance.xapi?.Command.Audio.Microphone[1].EchoControl.NoiseReduction.On()
-					: instance.xapi?.Command.Audio.Microphone[1].EchoControl.NoiseReduction.Off()
-				break
-			}
-			case ActionId.Presentation: {
-				const connectorId = parseInt(String(opt.ConnectorId))
-				let instances = null
-				let presentationSource = null
-				if (String(opt.Instance) == 'New') {
-					instances = String(opt.Instance)
-				} else instances = parseInt(String(opt.Instance))
-
-				if (String(opt.PresentationSource) == 'None') {
-					presentationSource = String(opt.PresentationSource)
-				} else presentationSource = parseInt(String(opt.PresentationSource))
-
-				instance.xapi?.Command.Presentation.start({
-					ConnectorId: connectorId,
-					Instance: instances,
-					Layout: opt.Layout,
-					PresentationSource: presentationSource,
-					SendingMode: opt.SendingMode
-				})
-				break
-			}
-			case ActionId.VideoMatrix: {
-				const sourceId = parseInt(String(opt.SourceId))
-				instance.xapi?.Command.Video.Matrix.assign({
-					Layout: opt.Layout,
-					Mode: opt.Mode,
-					Output: opt.Output,
-					RemoteMain: opt.RemoteMain,
-					SourceId: sourceId
-				})
-				break
-			}
-			case ActionId.CameraPreset: {
-				const preset = parseInt(String(opt.PresetId))
-				instance.xapi?.Command.Camera.Preset.Activate({ PresetId: preset })
-				break
-			}
-			case ActionId.SetMainVideoSource: {
-				const connectorId = parseInt(String(opt.ConnectorId))
-				const sourceId = parseInt(String(opt.SourceId))
-				instance.xapi?.Command.Video.Input.SetMainVideoSource({
-					ConnectorId: connectorId,
-					Layout: opt.Layout,
-					PIPPosition: opt.PIPPosition,
-					PIPSize: opt.PIPSize,
-					SourceId: sourceId
-				})
-				break
-			}
-			case ActionId.CameraPositionSet: {
-				const cameraId = parseInt(String(opt.CameraId))
-				const focus = parseInt(String(opt.Focus))
-				const pan = parseInt(String(opt.Pan))
-				const roll = parseInt(String(opt.Roll))
-				const tilt = parseInt(String(opt.Tilt))
-				const zoom = parseInt(String(opt.Zoom))
-				instance.xapi?.Command.Camera.PositionSet({
-					CameraId: cameraId,
-					Focus: focus,
-					Lens: opt.Lens,
-					Pan: pan,
-					Roll: roll,
-					Tilt: tilt,
-					Zoom: zoom
-				})
-				break
-			}
-			case ActionId.VideoMatrixReset: {
-				const output = parseInt(String(opt.Output))
-				instance.xapi?.Command.Video.Matrix.Reset({ Output: output })
-				break
-			}
-			case ActionId.TriggerAutofocus: {
-				const cameraId = parseInt(String(opt.CameraId))
-				instance.xapi?.Command.Camera.TriggerAutofocus({ CameraId: cameraId })
-				break
-			}
-			case ActionId.CameraRamp: {
-				const cameraId = parseInt(String(opt.CameraId))
-				const panSpeed = parseInt(String(opt.PanSpeed))
-				const tiltSpeed = parseInt(String(opt.TiltSpeed))
-				const zoomSpeed = parseInt(String(opt.ZoomSpeed))
-				instance.xapi?.Command.Camera.Ramp({
-					CameraId: cameraId,
-					Pan: opt.Pan,
-					PanSpeed: panSpeed,
-					Tilt: opt.Tilt,
-					TiltSpeed: tiltSpeed,
-					Zoom: opt.Zoom,
-					ZoomSpeed: zoomSpeed,
-					Focus: opt.Focus
-				})
-				break
-			}
-			case ActionId.DTMFSend: {
-				const callId = parseInt(String(opt.CallId))
-				instance.xapi?.Command.Call.DTMFSend({
-					CallId: callId,
-					DTMFString: opt.DTMFString
-				})
-				break
-			}
-			case ActionId.ConferenceDoNotDisturbActivate: {
-				const timeout = parseInt(String(opt.Timeout))
-				instance.xapi?.Command.Conference.DoNotDisturb.Activate({
-					Timeout: timeout
-				})
-				break
-			}
-			case ActionId.ConferenceDoNotDisturbDeActivate: {
-				instance.xapi?.Command.Conference.DoNotDisturb.Deactivate()
-				break
-			}
-			case ActionId.SelfView: {
-				instance.xapi?.Command.Video.SelfView({
-					Mode: opt.Mode,
-					FullscreenMode: opt.FullscreenMode,
-					PIPPosition: opt.PIPPosition,
-					OnMonitorRole: opt.OnMonitorRole
-				})
-				break
-			}
-			case ActionId.OSDKeyClick: {
-				instance.xapi?.Command.UserInterface.OSD.Key.Click({
-					Key: opt.Key
-				})
-				break
-			}
-			case ActionId.OSDKeyPress: {
-				instance.xapi?.Command.UserInterface.OSD.Key.Press({
-					Key: opt.Key
-				})
-				break
-			}
-			case ActionId.OSDKeyRelease: {
-				instance.xapi?.Command.UserInterface.OSD.Key.Release({
-					Key: opt.Key
-				})
-				break
-			}
-			case ActionId.CameraBackground: {
-				instance.xapi?.Command.Cameras.Background.Set({
-					Image: opt.Image,
-					Mode: opt.Mode
-				})
-				break
-			}
-			case ActionId.VideoMonitors: {
-				instance.xapi?.Config.Video.Monitors.set(opt.Monitors)
-				break
-			}
-			case ActionId.VideoOutputMonitorRole: {
-				const connector = parseInt(String(opt.Connector))
-				instance.xapi?.Config.Video.Output.Connector[connector].MonitorRole.set(opt.MonitorRole)
-				break
-			}
-			case ActionId.MessageSend: {
-				instance.xapi?.Command.Message.Send({
-					Text: opt.Text
-				})
-				break
-			}
-			case ActionId.StandbyControl: {
-				instance.xapi?.Config.Standby.Control.set(opt.Standby)
-				break
-			}
-			case ActionId.StandbyDelay: {
-				const delay = parseInt(String(opt.Delay))
-				instance.xapi?.Config.Standby.Delay.set(delay)
-				break
-			}
-		}
-	} catch (e) {
-		instance.debug('Action failed: ' + e)
-	}
 }

@@ -1,8 +1,8 @@
-import InstanceSkel = require('../../../instance_skel')
 import WebSocket = require('ws')
 import { XAPI } from 'jsxapi'
+import { InstanceBase } from '@companion-module/base'
 
-interface connector {
+interface Connector {
 	id: string
 	Mute: string
 }
@@ -48,12 +48,12 @@ export interface WebexCall {
 	Ice: string
 }
 
-export abstract class WebexInstanceSkel<T> extends InstanceSkel<T> {
+export abstract class WebexInstanceSkel<T> extends InstanceBase<T> {
 	public websocket?: WebSocket
 	public xapi?: XAPI
 	public CallId!: string
 	public ongoingCalls: WebexCall[] = []
-	public connectorMute: connector[] = []
+	public connectorMute: Connector[] = []
 	public hasIngoingCall = false
 	public hasRingingCall = false
 	public hasOutgoingCall = false

@@ -1,6 +1,4 @@
-import InstanceSkel = require('../../../instance_skel')
-import { SomeCompanionConfigField } from '../../../instance_skel_types'
-
+import { Regex, SomeCompanionConfigField } from '@companion-module/base'
 export interface DeviceConfig {
 	host?: string
 	username?: string
@@ -8,10 +6,10 @@ export interface DeviceConfig {
 	protocol: string
 }
 
-export function GetConfigFields(self: InstanceSkel<DeviceConfig>): SomeCompanionConfigField[] {
+export function GetConfigFields(): SomeCompanionConfigField[] {
 	return [
 		{
-			type: 'text',
+			type: 'static-text',
 			id: 'info',
 			width: 12,
 			label: 'Note',
@@ -22,14 +20,14 @@ export function GetConfigFields(self: InstanceSkel<DeviceConfig>): SomeCompanion
 			id: 'host',
 			label: 'Device Host/IP',
 			width: 12,
-			regex: self.REGEX_IP
+			regex: Regex.IP
 		},
 		{
 			type: 'textinput',
 			id: 'username',
 			label: 'Username',
 			width: 6,
-			regex: self.REGEX_SOMETHING
+			regex: Regex.SOMETHING
 		},
 		{
 			type: 'textinput',
@@ -43,7 +41,10 @@ export function GetConfigFields(self: InstanceSkel<DeviceConfig>): SomeCompanion
 			id: 'protocol',
 			label: 'Connection protocol',
 			width: 6,
-			choices: [{id: 'wss', label: 'Websocket'},{id: 'ssh', label: 'ssh'}],
+			choices: [
+				{ id: 'wss', label: 'Websocket' },
+				{ id: 'ssh', label: 'ssh' }
+			],
 			default: 'ssh'
 		}
 	]

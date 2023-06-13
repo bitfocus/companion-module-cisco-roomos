@@ -1,34 +1,35 @@
 import { WebexInstanceSkel, WebexOnOffBoolean, WebexConfigAutoAnswer } from './webex'
 import { connect as XAPIConnect } from 'jsxapi'
 
-import {
-	CompanionActionEvent,
-	CompanionConfigField,
-	CompanionSystem,
-	CompanionFeedbackEvent,
-	CompanionFeedbackResult
-} from '../../../instance_skel_types'
-import { GetActionsList, HandleAction } from './actions'
+import { GetActionsList } from './actions'
 import { DeviceConfig, GetConfigFields } from './config'
-import { ExecuteFeedback, FeedbackId, GetFeedbacksList, HandleXAPIConfFeedback, HandleXAPIFeedback } from './feedback'
+import { FeedbackId, GetFeedbacksList, HandleXAPIConfFeedback, HandleXAPIFeedback } from './feedback'
 import { GetPresetsList } from './presets'
 import { InitVariables } from './variables'
+import {
+	CompanionVariableValues,
+	InstanceStatus,
+	SomeCompanionConfigField,
+	runEntrypoint
+} from '@companion-module/base'
+import { UpgradeScripts } from './upgrades'
 
 class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 	private connected: boolean
 	private connecting: boolean
 	private timer?: NodeJS.Timer
 
-	constructor(system: CompanionSystem, id: string, config: DeviceConfig) {
-		super(system, id, config)
+	private config!: DeviceConfig
+
+	constructor(internal: unknown) {
+		super(internal)
 
 		this.connected = false
 		this.connecting = false
 	}
 
-	public init(): void {
-		this.status(this.STATUS_UNKNOWN)
-		this.updateConfig(this.config)
+	public async init(config: DeviceConfig): Promise<void> {
+		this.configUpdated(config)
 		this.timer = setInterval(() => this.tick(), 5000)
 	}
 	/**
@@ -40,7 +41,7 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 		if (!this.connected)
 			console.log('Tick:', { connected: this.connected, connecting: this.connecting, host: this.config?.host })
 		if (!this.connected && !this.connecting) {
-			if (this.config?.host) {
+			if (this.config.host) {
 				this.initSSH()
 			}
 		}
@@ -68,10 +69,10 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 			})
 
 			this.connecting = true
-			this.status(this.STATUS_WARNING, 'Connecting')
+			this.updateStatus(InstanceStatus.Connecting)
 
 			this.xapi.on('error', (error) => {
-				this.status(this.STATUS_ERROR, 'Connection error')
+				this.updateStatus(InstanceStatus.ConnectionFailure)
 				this.log('error', 'Cisco Webex error: ' + error)
 				this.xapi = undefined
 				this.connected = false
@@ -81,36 +82,42 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 
 			this.xapi.on('ready', () => {
 				// console.log('ready THIS:', this)
-				this.status(this.STATUS_OK, 'Ready')
+				this.updateStatus(InstanceStatus.Ok)
 				this.connected = true
 				this.checkFeedbacks()
 
 				this.xapi?.config.get('Conference AutoAnswer').then((value) => {
 					if (value?.Mode) {
-						if (value?.Mode != null) this.setVariable('autoanswer_mode', value.Mode)
-						if (value?.Mute != null) this.setVariable('autoanswer_mute', value.Mute)
-						if (value?.Delay != null) this.setVariable('autoanswer_delay', value.Delay)
+						const newValues: CompanionVariableValues = {}
+						if (value?.Mode != null) newValues['autoanswer_mode'] = value.Mode
+						if (value?.Mute != null) newValues['autoanswer_mute'] = value.Mute
+						if (value?.Delay != null) newValues['autoanswer_delay'] = value.Delay
+						this.setVariableValues(newValues)
 						this.autoAnswerConfig = value as WebexConfigAutoAnswer
 					}
 				})
 				this.xapi?.Status.Conference.get().then((value: any) => {
+					const newValues: CompanionVariableValues = {}
+
 					if (value.DoNotDisturb != null) {
-						this.setVariable('DoNotDisturb', value.DoNotDisturb)
+						newValues['DoNotDisturb'] = value.DoNotDisturb
 					}
 					if (value.Presentation != null) {
-						this.setVariable('Presentation', value.Presentation.CallId + value.Presentation.Mode)
+						newValues['Presentation'] = value.Presentation.CallId + value.Presentation.Mode
 					}
 					if (value.SelectedCallProtocol != null) {
-						this.setVariable('SelectedCallProtocol', value.SelectedCallProtocol)
+						newValues['SelectedCallProtocol'] = value.SelectedCallProtocol
 					}
+
+					this.setVariableValues(newValues)
 				})
 
 				this.xapi?.Status.Time.SystemTime.get().then((time: Date) => {
-					this.setVariable('systemtime', time.toString())
+					this.setVariableValues({ systemtime: time.toString() })
 				})
 				this.xapi?.Status.Audio.SelectedDevice.get().then((value: any) => {
 					console.log('AUDIO SELECTED DEVICE:', value)
-					this.setVariable('selected_device', value.SelectedDevice)
+					this.setVariableValues({ selected_device: value.SelectedDevice })
 				})
 				this.xapi?.Status.Audio.get().then((value: any) => {
 					let muteState = ''
@@ -119,10 +126,12 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 						muteState += `(Mic ${element.id} Mute: ${element.Mute})`
 						this.connectorMute[element.id] = element.Mute
 					}
-					this.setVariable('audio_connector_mute', muteState)
-					this.setVariable('volume', value.Volume)
-					this.setVariable('microphones_musicmode', value.Microphones.MusicMode)
-					this.setVariable('microphones_mute', value.Microphones.Mute)
+					this.setVariableValues({
+						audio_connector_mute: muteState,
+						volume: value.Volume,
+						microphones_musicmode: value.Microphones.MusicMode,
+						microphones_mute: value.Microphones.Mute
+					})
 					this.microphoneMute = value.Microphones.Mute == 'On' ? true : false
 					this.checkFeedbacks(FeedbackId.MicrophoneMute)
 				})
@@ -267,31 +276,26 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 	 * @param {DeviceConfig} config
 	 * @memberof ControllerInstance
 	 */
-	public updateConfig(config: DeviceConfig): void {
+	public async configUpdated(config: DeviceConfig): Promise<void> {
 		this.config = config
-		this.setActions(GetActionsList(this))
+		this.setActionDefinitions(GetActionsList(this))
 		InitVariables(this)
 		this.initSSH()
-		this.setPresetDefinitions(GetPresetsList(this))
 		this.setFeedbackDefinitions(GetFeedbacksList(this))
-	}
-
-	public action(action: CompanionActionEvent): void {
-		HandleAction(this, action)
+		this.setPresetDefinitions(GetPresetsList())
 	}
 
 	/**
 	 * Creates the configuration fields for web config.
 	 */
-	// eslint-disable-next-line @typescript-eslint/camelcase
-	public config_fields(): CompanionConfigField[] {
-		return GetConfigFields(this)
+	public getConfigFields(): SomeCompanionConfigField[] {
+		return GetConfigFields()
 	}
 
 	/**
 	 * Clean up the instance before it is destroyed.
 	 */
-	public destroy(): void {
+	public async destroy(): Promise<void> {
 		try {
 			if (this.xapi !== undefined) {
 				this.xapi.close()
@@ -299,20 +303,12 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 		} catch (e) {
 			// Ignore
 		}
-		this.debug('destroy', this.id)
 
 		if (this.timer !== undefined) {
 			clearInterval(this.timer)
 			this.timer = undefined
 		}
 	}
-
-	/**
-	 * Processes a feedback state.
-	 */
-	public feedback(feedback: CompanionFeedbackEvent): CompanionFeedbackResult {
-		return ExecuteFeedback(this, feedback)
-	}
 }
 
-export = ControllerInstance
+runEntrypoint(ControllerInstance, UpgradeScripts)

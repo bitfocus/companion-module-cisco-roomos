@@ -1,328 +1,381 @@
-import InstanceSkel = require('../../../instance_skel')
-import { CompanionPreset } from '../../../instance_skel_types'
+import { CompanionPresetDefinitions, combineRgb } from '@companion-module/base'
 import { ActionId } from './actions'
-import { DeviceConfig } from './config'
 import { FeedbackId } from './feedback'
 
-interface CompanionPresetExt extends CompanionPreset {
-	feedbacks: Array<
-		{
-			type: FeedbackId
-		} & CompanionPreset['feedbacks'][0]
-	>
-	actions: Array<
-		{
-			action: ActionId
-		} & CompanionPreset['actions'][0]
-	>
-}
+export function GetPresetsList(): CompanionPresetDefinitions {
+	const presets: CompanionPresetDefinitions = {}
 
-export function GetPresetsList(instance: InstanceSkel<DeviceConfig>): CompanionPreset[] {
-	const presets: CompanionPresetExt[] = []
-
-	presets.push({
+	presets['general_dial'] = {
+		type: 'button',
 		category: 'General functions',
-		label: `Dial`,
-		bank: {
-			style: 'text',
+		name: `Dial`,
+		style: {
 			text: `Dial`,
 			size: '18',
-			color: instance.rgb(255, 255, 255),
-			bgcolor: instance.rgb(0, 0, 0)
+			color: combineRgb(255, 255, 255),
+			bgcolor: combineRgb(0, 0, 0)
 		},
 		feedbacks: [
 			{
-				type: FeedbackId.HasOutgoingCall,
+				feedbackId: FeedbackId.HasOutgoingCall,
 				options: {
-					bg: instance.rgb(0, 255, 0),
-					fg: instance.rgb(0, 0, 0)
+					bg: combineRgb(0, 255, 0),
+					fg: combineRgb(0, 0, 0)
 				}
 			}
 		],
-		actions: [
+		steps: [
 			{
-				action: ActionId.Dial,
-				options: {
-					number: ''
-				}
+				down: [
+					{
+						actionId: ActionId.Dial,
+						options: {
+							number: ''
+						}
+					}
+				],
+				up: []
 			}
 		]
-	})
-	presets.push({
+	}
+	presets['audio_volume'] = {
+		type: 'button',
 		category: 'Audio',
-		label: `Audio volume`,
-		bank: {
-			style: 'text',
+		name: `Audio volume`,
+		style: {
 			text: `Audio volume`,
 			size: '18',
-			color: instance.rgb(255, 255, 255),
-			bgcolor: instance.rgb(0, 0, 0)
+			color: combineRgb(255, 255, 255),
+			bgcolor: combineRgb(0, 0, 0)
 		},
 		feedbacks: [],
-		actions: [
+		steps: [
 			{
-				action: ActionId.Volume,
-				options: {
-					volume: 80
-				}
+				down: [
+					{
+						actionId: ActionId.Volume,
+						options: {
+							volume: 80
+						}
+					}
+				],
+				up: []
 			}
 		]
-	})
-	presets.push({
+	}
+	presets['audio_mic_mute'] = {
+		type: 'button',
 		category: 'Audio',
-		label: `Microphone mute`,
-		bank: {
-			style: 'text',
+		name: `Microphone mute`,
+		style: {
 			text: `Microphone mute`,
 			size: '18',
-			color: instance.rgb(255, 255, 255),
-			bgcolor: instance.rgb(0, 0, 0)
+			color: combineRgb(255, 255, 255),
+			bgcolor: combineRgb(0, 0, 0)
 		},
 		feedbacks: [
 			{
-				type: FeedbackId.MicrophoneMute,
+				feedbackId: FeedbackId.MicrophoneMute,
 				options: {
-					bg: instance.rgb(255, 0, 0),
-					fg: instance.rgb(255, 255, 255)
+					bg: combineRgb(255, 0, 0),
+					fg: combineRgb(255, 255, 255)
 				}
 			}
 		],
-		actions: [
+		steps: [
 			{
-				action: ActionId.MicrophoneMute,
-				options: {
-					Mute: 'On'
-				}
+				down: [
+					{
+						actionId: ActionId.MicrophoneMute,
+						options: {
+							Mute: 'On'
+						}
+					}
+				],
+				up: []
 			}
 		]
-	})
-	presets.push({
+	}
+	presets['general_accept_all_calls'] = {
+		type: 'button',
 		category: 'General functions',
-		label: `Accept all calls`,
-		bank: {
-			style: 'text',
+		name: `Accept all calls`,
+		style: {
 			text: `Accept call`,
 			size: '18',
-			color: instance.rgb(255, 255, 255),
-			bgcolor: instance.rgb(0, 0, 0)
+			color: combineRgb(255, 255, 255),
+			bgcolor: combineRgb(0, 0, 0)
 		},
 		feedbacks: [],
-		actions: [
+		steps: [
 			{
-				action: ActionId.Accept,
-				options: {}
+				down: [
+					{
+						actionId: ActionId.Accept,
+						options: {}
+					}
+				],
+				up: []
 			}
 		]
-	})
-	presets.push({
+	}
+	presets['general_disconnect'] = {
+		type: 'button',
 		category: 'General functions',
-		label: `Disconnect`,
-		bank: {
-			style: 'text',
+		name: `Disconnect`,
+		style: {
 			text: `Disconnect`,
 			size: '7',
-			color: instance.rgb(255, 255, 255),
-			bgcolor: instance.rgb(0, 0, 0)
+			color: combineRgb(255, 255, 255),
+			bgcolor: combineRgb(0, 0, 0)
 		},
 		feedbacks: [],
-		actions: [
+		steps: [
 			{
-				action: ActionId.Disconnect,
-				options: {
-					CallId: 0
-				}
+				down: [
+					{
+						actionId: ActionId.Disconnect,
+						options: {
+							CallId: 0
+						}
+					}
+				],
+				up: []
 			}
 		]
-	})
-	presets.push({
+	}
+	presets['general_auto_answer'] = {
+		type: 'button',
 		category: 'General functions',
-		label: `Auto-answer mode`,
-		bank: {
-			style: 'text',
+		name: `Auto-answer mode`,
+		style: {
 			text: `AA\\n$(int:autoanswer_mode)`,
 			size: '18',
-			color: instance.rgb(255, 255, 255),
-			bgcolor: instance.rgb(0, 0, 0)
+			color: combineRgb(255, 255, 255),
+			bgcolor: combineRgb(0, 0, 0)
 		},
 		feedbacks: [
 			{
-				type: FeedbackId.AutoAnswer,
+				feedbackId: FeedbackId.AutoAnswer,
 				options: {
-					bg: instance.rgb(255, 255, 255),
-					fg: instance.rgb(0, 0, 0)
+					bg: combineRgb(255, 255, 255),
+					fg: combineRgb(0, 0, 0)
 				}
 			}
 		],
-		actions: [
+		steps: [
 			{
-				action: ActionId.AutoAnswerMode,
-				options: {
-					Mode: 'On'
-				}
+				down: [
+					{
+						actionId: ActionId.AutoAnswerMode,
+						options: {
+							Mode: 'On'
+						}
+					}
+				],
+				up: []
 			}
 		]
-	})
-	presets.push({
+	}
+	presets['visual_show_ingoing_calls'] = {
+		type: 'button',
 		category: 'Visual buttons',
-		label: `Show active ingoing calls`,
-		bank: {
-			style: 'text',
+		name: `Show active ingoing calls`,
+		style: {
 			text: `Ingoing\\n$(int:ingoing_calls)`,
 			size: '14',
-			color: instance.rgb(255, 255, 255),
-			bgcolor: instance.rgb(0, 0, 0)
+			color: combineRgb(255, 255, 255),
+			bgcolor: combineRgb(0, 0, 0)
 		},
 		feedbacks: [
 			{
-				type: FeedbackId.HasIngoingCall,
+				feedbackId: FeedbackId.HasIngoingCall,
 				options: {
-					bg: instance.rgb(0, 255, 0),
-					fg: instance.rgb(0, 0, 0)
+					bg: combineRgb(0, 255, 0),
+					fg: combineRgb(0, 0, 0)
 				}
 			}
 		],
-		actions: []
-	})
-	presets.push({
+		steps: [
+			{
+				down: [],
+				up: []
+			}
+		]
+	}
+	presets['visual_show_outgoing_calls'] = {
+		type: 'button',
 		category: 'Visual buttons',
-		label: `Show active outgoing calls`,
-		bank: {
-			style: 'text',
+		name: `Show active outgoing calls`,
+		style: {
 			text: `Outgoing\\n$(int:outgoing_calls)`,
 			size: '14',
-			color: instance.rgb(255, 255, 255),
-			bgcolor: instance.rgb(0, 0, 0)
+			color: combineRgb(255, 255, 255),
+			bgcolor: combineRgb(0, 0, 0)
 		},
 		feedbacks: [
 			{
-				type: FeedbackId.HasOutgoingCall,
+				feedbackId: FeedbackId.HasOutgoingCall,
 				options: {
-					bg: instance.rgb(0, 255, 0),
-					fg: instance.rgb(0, 0, 0)
+					bg: combineRgb(0, 255, 0),
+					fg: combineRgb(0, 0, 0)
 				}
 			}
 		],
-		actions: []
-	})
-	presets.push({
+		steps: [
+			{
+				down: [],
+				up: []
+			}
+		]
+	}
+	presets['visual_show_ingoing_ringing_calls'] = {
+		type: 'button',
 		category: 'Visual buttons',
-		label: `Show ingoing ringing calls`,
-		bank: {
-			style: 'text',
+		name: `Show ingoing ringing calls`,
+		style: {
 			text: `Ringing\\n$(int:ingoing_ringing_calls)`,
 			size: '14',
-			color: instance.rgb(255, 255, 255),
-			bgcolor: instance.rgb(0, 0, 0)
+			color: combineRgb(255, 255, 255),
+			bgcolor: combineRgb(0, 0, 0)
 		},
 		feedbacks: [
 			{
-				type: FeedbackId.Ringing,
+				feedbackId: FeedbackId.Ringing,
 				options: {
-					bg: instance.rgb(0, 255, 0),
-					fg: instance.rgb(0, 0, 0)
+					bg: combineRgb(0, 255, 0),
+					fg: combineRgb(0, 0, 0)
 				}
 			}
 		],
-		actions: []
-	})
-	presets.push({
+		steps: [
+			{
+				down: [],
+				up: []
+			}
+		]
+	}
+	presets['custom-xconfig'] = {
+		type: 'button',
 		category: 'Custom',
-		label: `Custom xConfiguration`,
-		bank: {
-			style: 'text',
+		name: `Custom xConfiguration`,
+		style: {
 			text: 'custom\\nxConfiguration',
 			size: '18',
-			color: instance.rgb(255, 255, 255),
-			bgcolor: instance.rgb(0, 0, 0)
+			color: combineRgb(255, 255, 255),
+			bgcolor: combineRgb(0, 0, 0)
 		},
 		feedbacks: [],
-		actions: [
+		steps: [
 			{
-				action: ActionId.CustomConfiguration,
-				options: {
-					path: 'Conference AutoAnswer Mode',
-					Value: 'On'
-				}
+				down: [
+					{
+						actionId: ActionId.CustomConfiguration,
+						options: {
+							path: 'Conference AutoAnswer Mode',
+							Value: 'On'
+						}
+					}
+				],
+				up: []
 			}
 		]
-	})
-	presets.push({
+	}
+	presets['custom_xcommand'] = {
+		type: 'button',
 		category: 'Custom',
-		label: `Custom xCommand`,
-		bank: {
-			style: 'text',
+		name: `Custom xCommand`,
+		style: {
 			text: 'custom\\nxCommand',
 			size: '18',
-			color: instance.rgb(255, 255, 255),
-			bgcolor: instance.rgb(0, 0, 0)
+			color: combineRgb(255, 255, 255),
+			bgcolor: combineRgb(0, 0, 0)
 		},
 		feedbacks: [],
-		actions: [
+		steps: [
 			{
-				action: ActionId.CustomCommand,
-				options: {
-					Method: 'Dial',
-					Params: '{"Number":"123456789@meet24.webex.com"}'
-				}
+				down: [
+					{
+						actionId: ActionId.CustomCommand,
+						options: {
+							Method: 'Dial',
+							Params: '{"Number":"123456789@meet24.webex.com"}'
+						}
+					}
+				],
+				up: []
 			}
 		]
-	})
-	presets.push({
+	}
+	presets['osd_key_click'] = {
+		type: 'button',
 		category: 'OSD',
-		label: `OSD Key Click`,
-		bank: {
-			style: 'text',
+		name: `OSD Key Click`,
+		style: {
 			text: 'OSD Click',
 			size: '18',
-			color: instance.rgb(255, 255, 255),
-			bgcolor: instance.rgb(0, 0, 0)
+			color: combineRgb(255, 255, 255),
+			bgcolor: combineRgb(0, 0, 0)
 		},
 		feedbacks: [],
-		actions: [
+		steps: [
 			{
-				action: ActionId.OSDKeyClick,
-				options: {}
+				down: [
+					{
+						actionId: ActionId.OSDKeyClick,
+						options: {}
+					}
+				],
+				up: []
 			}
 		]
-	})
-	presets.push({
+	}
+	presets['osd_key_press'] = {
+		type: 'button',
 		category: 'OSD',
-		label: `OSD Key Press`,
-		bank: {
-			style: 'text',
+		name: `OSD Key Press`,
+		style: {
 			text: 'OSD Press',
 			size: '18',
-			color: instance.rgb(255, 255, 255),
-			bgcolor: instance.rgb(0, 0, 0)
+			color: combineRgb(255, 255, 255),
+			bgcolor: combineRgb(0, 0, 0)
 		},
 		feedbacks: [],
-		actions: [
+		steps: [
 			{
-				action: ActionId.OSDKeyPress,
-				options: {}
+				down: [
+					{
+						actionId: ActionId.OSDKeyPress,
+						options: {}
+					}
+				],
+				up: []
 			}
 		]
-	})
-	presets.push({
+	}
+	presets['osd_key_release'] = {
+		type: 'button',
 		category: 'OSD',
-		label: `OSD Key Release`,
-		bank: {
-			style: 'text',
+		name: `OSD Key Release`,
+		style: {
 			text: 'OSD Release',
 			size: '18',
-			color: instance.rgb(255, 255, 255),
-			bgcolor: instance.rgb(0, 0, 0)
+			color: combineRgb(255, 255, 255),
+			bgcolor: combineRgb(0, 0, 0)
 		},
 		feedbacks: [],
-		actions: [
+		steps: [
 			{
-				action: ActionId.OSDKeyRelease,
-				options: {}
+				down: [
+					{
+						actionId: ActionId.OSDKeyRelease,
+						options: {}
+					}
+				],
+				up: []
 			}
 		]
-	})
-
-	
+	}
 
 	return presets
 }
