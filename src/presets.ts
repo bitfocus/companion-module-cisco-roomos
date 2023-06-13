@@ -1,6 +1,6 @@
 import { CompanionPresetDefinitions, combineRgb } from '@companion-module/base'
-import { ActionId } from './actions'
-import { FeedbackId } from './feedback'
+import { ActionId } from './actions.js'
+import { FeedbackId } from './feedback.js'
 
 export function GetPresetsList(): CompanionPresetDefinitions {
 	const presets: CompanionPresetDefinitions = {}
@@ -13,16 +13,16 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 			text: `Dial`,
 			size: '18',
 			color: combineRgb(255, 255, 255),
-			bgcolor: combineRgb(0, 0, 0)
+			bgcolor: combineRgb(0, 0, 0),
 		},
 		feedbacks: [
 			{
 				feedbackId: FeedbackId.HasOutgoingCall,
 				options: {
 					bg: combineRgb(0, 255, 0),
-					fg: combineRgb(0, 0, 0)
-				}
-			}
+					fg: combineRgb(0, 0, 0),
+				},
+			},
 		],
 		steps: [
 			{
@@ -30,13 +30,13 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 					{
 						actionId: ActionId.Dial,
 						options: {
-							number: ''
-						}
-					}
+							number: '',
+						},
+					},
 				],
-				up: []
-			}
-		]
+				up: [],
+			},
+		],
 	}
 	presets['audio_volume'] = {
 		type: 'button',
@@ -46,7 +46,7 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 			text: `Audio volume`,
 			size: '18',
 			color: combineRgb(255, 255, 255),
-			bgcolor: combineRgb(0, 0, 0)
+			bgcolor: combineRgb(0, 0, 0),
 		},
 		feedbacks: [],
 		steps: [
@@ -55,13 +55,13 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 					{
 						actionId: ActionId.Volume,
 						options: {
-							volume: 80
-						}
-					}
+							volume: 80,
+						},
+					},
 				],
-				up: []
-			}
-		]
+				up: [],
+			},
+		],
 	}
 	presets['audio_mic_mute'] = {
 		type: 'button',
@@ -71,16 +71,16 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 			text: `Microphone mute`,
 			size: '18',
 			color: combineRgb(255, 255, 255),
-			bgcolor: combineRgb(0, 0, 0)
+			bgcolor: combineRgb(0, 0, 0),
 		},
 		feedbacks: [
 			{
 				feedbackId: FeedbackId.MicrophoneMute,
 				options: {
 					bg: combineRgb(255, 0, 0),
-					fg: combineRgb(255, 255, 255)
-				}
-			}
+					fg: combineRgb(255, 255, 255),
+				},
+			},
 		],
 		steps: [
 			{
@@ -88,13 +88,13 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 					{
 						actionId: ActionId.MicrophoneMute,
 						options: {
-							Mute: 'On'
-						}
-					}
+							Mute: 'On',
+						},
+					},
 				],
-				up: []
-			}
-		]
+				up: [],
+			},
+		],
 	}
 	presets['general_accept_all_calls'] = {
 		type: 'button',
@@ -104,7 +104,7 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 			text: `Accept call`,
 			size: '18',
 			color: combineRgb(255, 255, 255),
-			bgcolor: combineRgb(0, 0, 0)
+			bgcolor: combineRgb(0, 0, 0),
 		},
 		feedbacks: [],
 		steps: [
@@ -112,12 +112,12 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 				down: [
 					{
 						actionId: ActionId.Accept,
-						options: {}
-					}
+						options: {},
+					},
 				],
-				up: []
-			}
-		]
+				up: [],
+			},
+		],
 	}
 	presets['general_disconnect'] = {
 		type: 'button',
@@ -127,7 +127,7 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 			text: `Disconnect`,
 			size: '7',
 			color: combineRgb(255, 255, 255),
-			bgcolor: combineRgb(0, 0, 0)
+			bgcolor: combineRgb(0, 0, 0),
 		},
 		feedbacks: [],
 		steps: [
@@ -136,13 +136,13 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 					{
 						actionId: ActionId.Disconnect,
 						options: {
-							CallId: 0
-						}
-					}
+							CallId: 0,
+						},
+					},
 				],
-				up: []
-			}
-		]
+				up: [],
+			},
+		],
 	}
 	presets['general_auto_answer'] = {
 		type: 'button',
@@ -152,16 +152,16 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 			text: `AA\\n$(int:autoanswer_mode)`,
 			size: '18',
 			color: combineRgb(255, 255, 255),
-			bgcolor: combineRgb(0, 0, 0)
+			bgcolor: combineRgb(0, 0, 0),
 		},
 		feedbacks: [
 			{
 				feedbackId: FeedbackId.AutoAnswer,
 				options: {
 					bg: combineRgb(255, 255, 255),
-					fg: combineRgb(0, 0, 0)
-				}
-			}
+					fg: combineRgb(0, 0, 0),
+				},
+			},
 		],
 		steps: [
 			{
@@ -169,13 +169,13 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 					{
 						actionId: ActionId.AutoAnswerMode,
 						options: {
-							Mode: 'On'
-						}
-					}
+							Mode: 'On',
+						},
+					},
 				],
-				up: []
-			}
-		]
+				up: [],
+			},
+		],
 	}
 	presets['visual_show_ingoing_calls'] = {
 		type: 'button',
@@ -185,23 +185,23 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 			text: `Ingoing\\n$(int:ingoing_calls)`,
 			size: '14',
 			color: combineRgb(255, 255, 255),
-			bgcolor: combineRgb(0, 0, 0)
+			bgcolor: combineRgb(0, 0, 0),
 		},
 		feedbacks: [
 			{
 				feedbackId: FeedbackId.HasIngoingCall,
 				options: {
 					bg: combineRgb(0, 255, 0),
-					fg: combineRgb(0, 0, 0)
-				}
-			}
+					fg: combineRgb(0, 0, 0),
+				},
+			},
 		],
 		steps: [
 			{
 				down: [],
-				up: []
-			}
-		]
+				up: [],
+			},
+		],
 	}
 	presets['visual_show_outgoing_calls'] = {
 		type: 'button',
@@ -211,23 +211,23 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 			text: `Outgoing\\n$(int:outgoing_calls)`,
 			size: '14',
 			color: combineRgb(255, 255, 255),
-			bgcolor: combineRgb(0, 0, 0)
+			bgcolor: combineRgb(0, 0, 0),
 		},
 		feedbacks: [
 			{
 				feedbackId: FeedbackId.HasOutgoingCall,
 				options: {
 					bg: combineRgb(0, 255, 0),
-					fg: combineRgb(0, 0, 0)
-				}
-			}
+					fg: combineRgb(0, 0, 0),
+				},
+			},
 		],
 		steps: [
 			{
 				down: [],
-				up: []
-			}
-		]
+				up: [],
+			},
+		],
 	}
 	presets['visual_show_ingoing_ringing_calls'] = {
 		type: 'button',
@@ -237,23 +237,23 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 			text: `Ringing\\n$(int:ingoing_ringing_calls)`,
 			size: '14',
 			color: combineRgb(255, 255, 255),
-			bgcolor: combineRgb(0, 0, 0)
+			bgcolor: combineRgb(0, 0, 0),
 		},
 		feedbacks: [
 			{
 				feedbackId: FeedbackId.Ringing,
 				options: {
 					bg: combineRgb(0, 255, 0),
-					fg: combineRgb(0, 0, 0)
-				}
-			}
+					fg: combineRgb(0, 0, 0),
+				},
+			},
 		],
 		steps: [
 			{
 				down: [],
-				up: []
-			}
-		]
+				up: [],
+			},
+		],
 	}
 	presets['custom-xconfig'] = {
 		type: 'button',
@@ -263,7 +263,7 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 			text: 'custom\\nxConfiguration',
 			size: '18',
 			color: combineRgb(255, 255, 255),
-			bgcolor: combineRgb(0, 0, 0)
+			bgcolor: combineRgb(0, 0, 0),
 		},
 		feedbacks: [],
 		steps: [
@@ -273,13 +273,13 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 						actionId: ActionId.CustomConfiguration,
 						options: {
 							path: 'Conference AutoAnswer Mode',
-							Value: 'On'
-						}
-					}
+							Value: 'On',
+						},
+					},
 				],
-				up: []
-			}
-		]
+				up: [],
+			},
+		],
 	}
 	presets['custom_xcommand'] = {
 		type: 'button',
@@ -289,7 +289,7 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 			text: 'custom\\nxCommand',
 			size: '18',
 			color: combineRgb(255, 255, 255),
-			bgcolor: combineRgb(0, 0, 0)
+			bgcolor: combineRgb(0, 0, 0),
 		},
 		feedbacks: [],
 		steps: [
@@ -299,13 +299,13 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 						actionId: ActionId.CustomCommand,
 						options: {
 							Method: 'Dial',
-							Params: '{"Number":"123456789@meet24.webex.com"}'
-						}
-					}
+							Params: '{"Number":"123456789@meet24.webex.com"}',
+						},
+					},
 				],
-				up: []
-			}
-		]
+				up: [],
+			},
+		],
 	}
 	presets['osd_key_click'] = {
 		type: 'button',
@@ -315,7 +315,7 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 			text: 'OSD Click',
 			size: '18',
 			color: combineRgb(255, 255, 255),
-			bgcolor: combineRgb(0, 0, 0)
+			bgcolor: combineRgb(0, 0, 0),
 		},
 		feedbacks: [],
 		steps: [
@@ -323,12 +323,12 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 				down: [
 					{
 						actionId: ActionId.OSDKeyClick,
-						options: {}
-					}
+						options: {},
+					},
 				],
-				up: []
-			}
-		]
+				up: [],
+			},
+		],
 	}
 	presets['osd_key_press'] = {
 		type: 'button',
@@ -338,7 +338,7 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 			text: 'OSD Press',
 			size: '18',
 			color: combineRgb(255, 255, 255),
-			bgcolor: combineRgb(0, 0, 0)
+			bgcolor: combineRgb(0, 0, 0),
 		},
 		feedbacks: [],
 		steps: [
@@ -346,12 +346,12 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 				down: [
 					{
 						actionId: ActionId.OSDKeyPress,
-						options: {}
-					}
+						options: {},
+					},
 				],
-				up: []
-			}
-		]
+				up: [],
+			},
+		],
 	}
 	presets['osd_key_release'] = {
 		type: 'button',
@@ -361,7 +361,7 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 			text: 'OSD Release',
 			size: '18',
 			color: combineRgb(255, 255, 255),
-			bgcolor: combineRgb(0, 0, 0)
+			bgcolor: combineRgb(0, 0, 0),
 		},
 		feedbacks: [],
 		steps: [
@@ -369,12 +369,12 @@ export function GetPresetsList(): CompanionPresetDefinitions {
 				down: [
 					{
 						actionId: ActionId.OSDKeyRelease,
-						options: {}
-					}
+						options: {},
+					},
 				],
-				up: []
-			}
-		]
+				up: [],
+			},
+		],
 	}
 
 	return presets

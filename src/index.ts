@@ -1,18 +1,17 @@
-import { WebexInstanceSkel, WebexOnOffBoolean, WebexConfigAutoAnswer } from './webex'
+import { WebexInstanceSkel, WebexOnOffBoolean, WebexConfigAutoAnswer } from './webex.js'
 import { connect as XAPIConnect } from 'jsxapi'
-
-import { GetActionsList } from './actions'
-import { DeviceConfig, GetConfigFields } from './config'
-import { FeedbackId, GetFeedbacksList, HandleXAPIConfFeedback, HandleXAPIFeedback } from './feedback'
-import { GetPresetsList } from './presets'
-import { InitVariables } from './variables'
+import { GetActionsList } from './actions.js'
+import { DeviceConfig, GetConfigFields } from './config.js'
+import { FeedbackId, GetFeedbacksList, HandleXAPIConfFeedback, HandleXAPIFeedback } from './feedback.js'
+import { GetPresetsList } from './presets.js'
+import { InitVariables } from './variables.js'
 import {
 	CompanionVariableValues,
 	InstanceStatus,
 	SomeCompanionConfigField,
-	runEntrypoint
+	runEntrypoint,
 } from '@companion-module/base'
-import { UpgradeScripts } from './upgrades'
+import { UpgradeScripts } from './upgrades.js'
 
 class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 	private connected: boolean
@@ -29,7 +28,7 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 	}
 
 	public async init(config: DeviceConfig): Promise<void> {
-		this.configUpdated(config)
+		await this.configUpdated(config)
 		this.timer = setInterval(() => this.tick(), 5000)
 	}
 	/**
@@ -65,7 +64,7 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 			const { host, username, password, protocol } = this.config
 			this.xapi = XAPIConnect(`${protocol}://` + host, {
 				username,
-				password
+				password,
 			})
 
 			this.connecting = true
@@ -86,60 +85,81 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 				this.connected = true
 				this.checkFeedbacks()
 
-				this.xapi?.config.get('Conference AutoAnswer').then((value) => {
-					if (value?.Mode) {
-						const newValues: CompanionVariableValues = {}
-						if (value?.Mode != null) newValues['autoanswer_mode'] = value.Mode
-						if (value?.Mute != null) newValues['autoanswer_mute'] = value.Mute
-						if (value?.Delay != null) newValues['autoanswer_delay'] = value.Delay
-						this.setVariableValues(newValues)
-						this.autoAnswerConfig = value as WebexConfigAutoAnswer
-					}
-				})
-				this.xapi?.Status.Conference.get().then((value: any) => {
-					const newValues: CompanionVariableValues = {}
-
-					if (value.DoNotDisturb != null) {
-						newValues['DoNotDisturb'] = value.DoNotDisturb
-					}
-					if (value.Presentation != null) {
-						newValues['Presentation'] = value.Presentation.CallId + value.Presentation.Mode
-					}
-					if (value.SelectedCallProtocol != null) {
-						newValues['SelectedCallProtocol'] = value.SelectedCallProtocol
-					}
-
-					this.setVariableValues(newValues)
-				})
-
-				this.xapi?.Status.Time.SystemTime.get().then((time: Date) => {
-					this.setVariableValues({ systemtime: time.toString() })
-				})
-				this.xapi?.Status.Audio.SelectedDevice.get().then((value: any) => {
-					console.log('AUDIO SELECTED DEVICE:', value)
-					this.setVariableValues({ selected_device: value.SelectedDevice })
-				})
-				this.xapi?.Status.Audio.get().then((value: any) => {
-					let muteState = ''
-					for (let index = 0; index < value.Input.Connectors.Microphone.length; index++) {
-						const element = value.Input.Connectors.Microphone[index]
-						muteState += `(Mic ${element.id} Mute: ${element.Mute})`
-						this.connectorMute[element.id] = element.Mute
-					}
-					this.setVariableValues({
-						audio_connector_mute: muteState,
-						volume: value.Volume,
-						microphones_musicmode: value.Microphones.MusicMode,
-						microphones_mute: value.Microphones.Mute
+				this.xapi?.config
+					.get('Conference AutoAnswer')
+					.then((value) => {
+						if (value?.Mode) {
+							const newValues: CompanionVariableValues = {}
+							if (value?.Mode != null) newValues['autoanswer_mode'] = value.Mode
+							if (value?.Mute != null) newValues['autoanswer_mute'] = value.Mute
+							if (value?.Delay != null) newValues['autoanswer_delay'] = value.Delay
+							this.setVariableValues(newValues)
+							this.autoAnswerConfig = value as WebexConfigAutoAnswer
+						}
 					})
-					this.microphoneMute = value.Microphones.Mute == 'On' ? true : false
-					this.checkFeedbacks(FeedbackId.MicrophoneMute)
-				})
+					.catch((e) => {
+						this.log('error', `Failed to check Conference AutoAnswer: ${e}`)
+					})
+				this.xapi?.Status.Conference.get()
+					.then((value: any) => {
+						const newValues: CompanionVariableValues = {}
+
+						if (value.DoNotDisturb != null) {
+							newValues['DoNotDisturb'] = value.DoNotDisturb
+						}
+						if (value.Presentation != null) {
+							newValues['Presentation'] = value.Presentation.CallId + value.Presentation.Mode
+						}
+						if (value.SelectedCallProtocol != null) {
+							newValues['SelectedCallProtocol'] = value.SelectedCallProtocol
+						}
+
+						this.setVariableValues(newValues)
+					})
+					.catch((e: any) => {
+						this.log('error', `Failed to check Conference: ${e}`)
+					})
+
+				this.xapi?.Status.Time.SystemTime.get()
+					.then((time: Date) => {
+						this.setVariableValues({ systemtime: time.toString() })
+					})
+					.catch((e: any) => {
+						this.log('error', `Failed to check Time SystemTime: ${e}`)
+					})
+				this.xapi?.Status.Audio.SelectedDevice.get()
+					.then((value: any) => {
+						console.log('AUDIO SELECTED DEVICE:', value)
+						this.setVariableValues({ selected_device: value.SelectedDevice })
+					})
+					.catch((e: any) => {
+						this.log('error', `Failed to check Audio SelectedDevice: ${e}`)
+					})
+				this.xapi?.Status.Audio.get()
+					.then((value: any) => {
+						let muteState = ''
+						for (let index = 0; index < value.Input.Connectors.Microphone.length; index++) {
+							const element = value.Input.Connectors.Microphone[index]
+							muteState += `(Mic ${element.id} Mute: ${element.Mute})`
+							this.connectorMute[element.id] = element.Mute
+						}
+						this.setVariableValues({
+							audio_connector_mute: muteState,
+							volume: value.Volume,
+							microphones_musicmode: value.Microphones.MusicMode,
+							microphones_mute: value.Microphones.Mute,
+						})
+						this.microphoneMute = value.Microphones.Mute == 'On' ? true : false
+						this.checkFeedbacks(FeedbackId.MicrophoneMute)
+					})
+					.catch((e: any) => {
+						this.log('error', `Failed to check Audio: ${e}`)
+					})
 			})
 
 			this.xapi.feedback.on('Status', (event) => HandleXAPIFeedback(this, event))
 			this.xapi.feedback.on('Configuration', (event) => HandleXAPIConfFeedback(this, event))
-		} catch (e) {
+		} catch (e: any) {
 			this.log('error', 'Error connecting to webex device: ' + e.message)
 			this.xapi = undefined
 			this.connected = false
@@ -162,7 +182,7 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 		this.autoAnswerConfig = {
 			Delay: '',
 			Mode: WebexOnOffBoolean.Unknown,
-			Mute: WebexOnOffBoolean.Unknown
+			Mute: WebexOnOffBoolean.Unknown,
 		}
 	}
 

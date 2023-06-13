@@ -1,10 +1,10 @@
-import { WebexInstanceSkel } from './webex'
-import { DeviceConfig } from './config'
+import { WebexInstanceSkel } from './webex.js'
+import { DeviceConfig } from './config.js'
 import {
 	CompanionActionDefinitions,
 	CompanionInputFieldDropdown,
 	CompanionInputFieldNumber,
-	Regex
+	Regex,
 } from '@companion-module/base'
 
 export enum ActionId {
@@ -41,7 +41,7 @@ export enum ActionId {
 	VideoOutputMonitorRole = 'video_output_monitor_role',
 	MessageSend = 'message_send',
 	StandbyControl = 'standby_control',
-	StandbyDelay = 'standby_control'
+	StandbyDelay = 'standby_control',
 }
 
 function WebexOnOffBooleanDropdown(id: string, label: string): CompanionInputFieldDropdown {
@@ -53,13 +53,13 @@ function WebexOnOffBooleanDropdown(id: string, label: string): CompanionInputFie
 		choices: [
 			{
 				label: 'On',
-				id: 'On'
+				id: 'On',
 			},
 			{
 				label: 'Off',
-				id: 'Off'
-			}
-		]
+				id: 'Off',
+			},
+		],
 	}
 }
 function RemoteKeyToPressDropdown(): CompanionInputFieldDropdown {
@@ -112,8 +112,8 @@ function RemoteKeyToPressDropdown(): CompanionInputFieldDropdown {
 			{ label: 'ZoomIn', id: 'ZoomIn' },
 			{ label: 'ZoomOut', id: 'ZoomOut' },
 			{ label: '+', id: '+' },
-			{ label: '-', id: '-' }
-		]
+			{ label: '-', id: '-' },
+		],
 	}
 }
 function ConnectorIdNumber(): CompanionInputFieldNumber {
@@ -123,7 +123,7 @@ function ConnectorIdNumber(): CompanionInputFieldNumber {
 		default: 1,
 		type: 'number',
 		min: 1,
-		max: 8
+		max: 8,
 	}
 }
 function SourceIdNumber(): CompanionInputFieldNumber {
@@ -133,7 +133,7 @@ function SourceIdNumber(): CompanionInputFieldNumber {
 		default: 1,
 		type: 'number',
 		min: 1,
-		max: 255
+		max: 255,
 	}
 }
 
@@ -148,21 +148,21 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				label: 'Path (use spaces)',
 				id: 'path',
 				default: 'Conference AutoAnswer Mode',
-				regex: Regex.SOMETHING
+				regex: Regex.SOMETHING,
 			},
 			{
 				type: 'textinput',
 				label: 'Value',
 				id: 'Value',
 				default: '',
-				regex: Regex.SOMETHING
-			}
+				regex: Regex.SOMETHING,
+			},
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
 
 			await instance.xapi?.config.set(`'${opt.path}'`, String(opt.Value))
-		}
+		},
 	}
 	actions[ActionId.CustomCommand] = {
 		name: 'Custom xCommand',
@@ -172,15 +172,15 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				label: 'Method',
 				id: 'Method',
 				default: 'Dial',
-				regex: Regex.SOMETHING
+				regex: Regex.SOMETHING,
 			},
 			{
 				type: 'textinput',
 				label: 'Params (Put in JSON format)',
 				id: 'Params',
 				default: '{"Number":"123456789@meet24.webex.com"}',
-				regex: Regex.SOMETHING
-			}
+				regex: Regex.SOMETHING,
+			},
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
@@ -188,7 +188,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 			await instance.xapi
 				?.command(`'${opt.Method}'`, JSON.parse(String(opt.Params)))
 				.catch((e: any) => instance.log('warn', `Webex: Dial failed: ${e.message}`))
-		}
+		},
 	}
 	actions[ActionId.Dial] = {
 		name: 'Call: Dial',
@@ -198,8 +198,8 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				label: 'Address to call',
 				id: 'number',
 				default: '',
-				regex: Regex.SOMETHING
-			}
+				regex: Regex.SOMETHING,
+			},
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
@@ -207,7 +207,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 			await instance.xapi?.Command.dial({ Number: opt.number }).catch((e: unknown) =>
 				instance.log('warn', `Webex: Dial failed: ${e}`)
 			)
-		}
+		},
 	}
 	actions[ActionId.Disconnect] = {
 		name: 'Call: Disconnect',
@@ -218,8 +218,8 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				type: 'number',
 				min: 0,
 				max: 255,
-				default: 0
-			}
+				default: 0,
+			},
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
@@ -228,14 +228,14 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 			await instance.xapi?.Command.Call.disconnect({ CallId: callId }).catch((e: unknown) =>
 				instance.log('warn', `Webex: Dial failed: ${e}`)
 			)
-		}
+		},
 	}
 	actions[ActionId.Accept] = {
 		name: 'Call: Accept all incoming calls',
 		options: [],
 		callback: async (): Promise<void> => {
 			await instance.xapi?.Command.Call.Accept() // If no ID is passed all are accepted
-		}
+		},
 	}
 	actions[ActionId.AutoAnswerMode] = {
 		name: 'Call: Configure auto-answer mode',
@@ -244,7 +244,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 			const opt = action.options
 
 			await instance.xapi?.Config.Conference.AutoAnswer.Mode.set(opt.Mode)
-		}
+		},
 	}
 	actions[ActionId.AutoAnswerMute] = {
 		name: 'Call: Configure auto-answer mute',
@@ -253,7 +253,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 			const opt = action.options
 
 			await instance.xapi?.Config.Conference.AutoAnswer.Mute.set(opt.Mute)
-		}
+		},
 	}
 	actions[ActionId.AutoAnswerDelay] = {
 		name: 'Call: Configure auto-answer delay',
@@ -263,15 +263,15 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				default: '0',
 				label: 'Delay (in seconds)',
 				id: 'Delay',
-				regex: Regex.NUMBER
-			}
+				regex: Regex.NUMBER,
+			},
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
 
 			const delay = parseInt(String(opt.Delay))
 			await instance.xapi?.Config.Conference.AutoAnswer.Delay.set(delay)
-		}
+		},
 	}
 	actions[ActionId.Volume] = {
 		name: 'Audio: Volume',
@@ -282,15 +282,15 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				label: 'level 0-100',
 				min: 0,
 				max: 100,
-				id: 'volume'
-			}
+				id: 'volume',
+			},
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
 
 			const volume = parseInt(String(opt.volume))
 			await instance.xapi?.Command.Audio.Volume.Set({ Level: volume })
-		}
+		},
 	}
 	actions[ActionId.MicrophoneMute] = {
 		name: 'Audio: Microphones Mute',
@@ -303,7 +303,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 			} else {
 				await instance.xapi?.Command.Audio.Microphones.Unmute()
 			}
-		}
+		},
 	}
 	// actions[ActionId.MicrophoneInput] = {
 	// 	name: 'Audio: Microphone input',
@@ -324,7 +324,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 			} else {
 				await instance.xapi?.Command.Audio.Microphones.MusicMode.Stop()
 			}
-		}
+		},
 	}
 	actions[ActionId.MicrophoneNoiseRemoval] = {
 		name: 'Audio: Microphones Noise removal',
@@ -335,9 +335,9 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				type: 'number',
 				min: 1,
 				max: 8,
-				default: 1
+				default: 1,
 			},
-			WebexOnOffBooleanDropdown('NoiseRemoval', 'NoiseRemoval')
+			WebexOnOffBooleanDropdown('NoiseRemoval', 'NoiseRemoval'),
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
@@ -347,7 +347,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 			} else {
 				await instance.xapi?.Command.Audio.Microphone[1].EchoControl.NoiseReduction.Off()
 			}
-		}
+		},
 	}
 	actions[ActionId.Presentation] = {
 		name: 'Presentation',
@@ -358,9 +358,9 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				type: 'dropdown',
 				choices: [
 					{ id: 'Start', label: 'Start' },
-					{ id: 'Stop', label: 'Stop' }
+					{ id: 'Stop', label: 'Stop' },
 				],
-				default: 'Start'
+				default: 'Start',
 			},
 			ConnectorIdNumber(),
 			{
@@ -374,9 +374,9 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 					{ id: '3', label: '3' },
 					{ id: '4', label: '4' },
 					{ id: '5', label: '5' },
-					{ id: '6', label: '6' }
+					{ id: '6', label: '6' },
 				],
-				default: 'new'
+				default: 'new',
 			},
 			{
 				label: 'Layout',
@@ -384,15 +384,15 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				type: 'dropdown',
 				choices: [
 					{ id: 'Equal', label: 'Equal' },
-					{ id: 'Prominent', label: 'Prominent' }
+					{ id: 'Prominent', label: 'Prominent' },
 				],
-				default: 'Equal'
+				default: 'Equal',
 			},
 			{
 				label: 'Presentation Source',
 				id: 'PresentationSource',
 				default: '1',
-				type: 'textinput'
+				type: 'textinput',
 			},
 			{
 				label: 'SendingMode',
@@ -400,10 +400,10 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				type: 'dropdown',
 				choices: [
 					{ id: 'LocalRemote', label: 'LocalRemote' },
-					{ id: 'LocalOnly', label: 'LocalOnly' }
+					{ id: 'LocalOnly', label: 'LocalOnly' },
 				],
-				default: 'LocalRemote'
-			}
+				default: 'LocalRemote',
+			},
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
@@ -420,9 +420,9 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				Instance: instances,
 				Layout: opt.Layout,
 				PresentationSource: presentationSource,
-				SendingMode: opt.SendingMode
+				SendingMode: opt.SendingMode,
 			})
-		}
+		},
 	}
 	actions[ActionId.VideoMatrix] = {
 		name: 'Video Matrix',
@@ -433,9 +433,9 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				type: 'dropdown',
 				choices: [
 					{ id: 'Equal', label: 'Equal' },
-					{ id: 'Prominent', label: 'Prominent' }
+					{ id: 'Prominent', label: 'Prominent' },
 				],
-				default: 'Equal'
+				default: 'Equal',
 			},
 			{
 				label: 'Mode',
@@ -443,9 +443,9 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				type: 'dropdown',
 				choices: [
 					{ id: 'Add', label: 'Add' },
-					{ id: 'Replace', label: 'Replace' }
+					{ id: 'Replace', label: 'Replace' },
 				],
-				default: 'Add'
+				default: 'Add',
 			},
 			{
 				label: 'Output',
@@ -453,7 +453,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				default: 1,
 				type: 'number',
 				min: 1,
-				max: 3
+				max: 3,
 			},
 			{
 				label: 'RemoteMain',
@@ -461,9 +461,9 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				default: 1,
 				type: 'number',
 				min: 1,
-				max: 4
+				max: 4,
 			},
-			SourceIdNumber()
+			SourceIdNumber(),
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
@@ -474,9 +474,9 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				Mode: opt.Mode,
 				Output: opt.Output,
 				RemoteMain: opt.RemoteMain,
-				SourceId: sourceId
+				SourceId: sourceId,
 			})
-		}
+		},
 	}
 	actions[ActionId.CameraPreset] = {
 		name: 'Camera: Activate Camera preset',
@@ -487,15 +487,15 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				default: 1,
 				id: 'PresetId',
 				min: 1,
-				max: 35
-			}
+				max: 35,
+			},
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
 
 			const preset = parseInt(String(opt.PresetId))
 			await instance.xapi?.Command.Camera.Preset.Activate({ PresetId: preset })
-		}
+		},
 	}
 	actions[ActionId.SetMainVideoSource] = {
 		name: 'Set Main Video Source',
@@ -508,9 +508,9 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				choices: [
 					{ id: 'Equal', label: 'Equal' },
 					{ id: 'PIP', label: 'PIP' },
-					{ id: 'Prominent', label: 'Prominent' }
+					{ id: 'Prominent', label: 'Prominent' },
 				],
-				default: 'Equal'
+				default: 'Equal',
 			},
 			{
 				label: 'PIP Position',
@@ -520,9 +520,9 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 					{ id: 'LowerLeft', label: 'LowerLeft' },
 					{ id: 'LowerRight', label: 'LowerRight' },
 					{ id: 'UpperLeft', label: 'UpperLeft' },
-					{ id: 'UpperRight', label: 'UpperRight' }
+					{ id: 'UpperRight', label: 'UpperRight' },
 				],
-				default: 'LowerLeft'
+				default: 'LowerLeft',
 			},
 			{
 				label: 'PIP Size',
@@ -530,11 +530,11 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				type: 'dropdown',
 				choices: [
 					{ id: 'Auto', label: 'Auto' },
-					{ id: 'Large', label: 'Large' }
+					{ id: 'Large', label: 'Large' },
 				],
-				default: 'Auto'
+				default: 'Auto',
 			},
-			SourceIdNumber()
+			SourceIdNumber(),
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
@@ -546,9 +546,9 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				Layout: opt.Layout,
 				PIPPosition: opt.PIPPosition,
 				PIPSize: opt.PIPSize,
-				SourceId: sourceId
+				SourceId: sourceId,
 			})
-		}
+		},
 	}
 	actions[ActionId.CameraPositionSet] = {
 		name: 'Set camera position',
@@ -559,7 +559,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				min: 1,
 				max: 7,
 				default: 1,
-				id: 'CameraId'
+				id: 'CameraId',
 			},
 			{
 				label: 'Focus',
@@ -567,7 +567,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				min: 0,
 				max: 65535,
 				default: 30000,
-				id: 'Focus'
+				id: 'Focus',
 			},
 			{
 				label: 'Lens',
@@ -576,10 +576,10 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 					{ label: 'Wide', id: 'Wide' },
 					{ label: 'Center', id: 'Center' },
 					{ label: 'Left', id: 'Left' },
-					{ label: 'Center', id: 'Center' }
+					{ label: 'Center', id: 'Center' },
 				],
 				default: 'Center',
-				id: 'Lens'
+				id: 'Lens',
 			},
 			{
 				label: 'Pan',
@@ -587,7 +587,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				min: -17000,
 				max: 17000,
 				default: 0,
-				id: 'Pan'
+				id: 'Pan',
 			},
 			{
 				label: 'Roll',
@@ -595,7 +595,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				min: -300,
 				max: 300,
 				default: 0,
-				id: 'Pan'
+				id: 'Pan',
 			},
 			{
 				label: 'Tilt',
@@ -603,7 +603,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				min: -9000,
 				max: 9000,
 				default: 0,
-				id: 'Pan'
+				id: 'Pan',
 			},
 			{
 				label: 'Zoom',
@@ -611,8 +611,8 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				min: 0,
 				max: 11800,
 				default: 5000,
-				id: 'Zoom'
-			}
+				id: 'Zoom',
+			},
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
@@ -630,9 +630,9 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				Pan: pan,
 				Roll: roll,
 				Tilt: tilt,
-				Zoom: zoom
+				Zoom: zoom,
 			})
-		}
+		},
 	}
 	actions[ActionId.VideoMatrixReset] = {
 		name: 'Video Matrix Reset',
@@ -643,15 +643,15 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				min: 1,
 				max: 3,
 				default: 1,
-				id: 'Output'
-			}
+				id: 'Output',
+			},
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
 
 			const output = parseInt(String(opt.Output))
 			await instance.xapi?.Command.Video.Matrix.Reset({ Output: output })
-		}
+		},
 	}
 	actions[ActionId.TriggerAutofocus] = {
 		name: 'Camera trigger auto focus',
@@ -662,15 +662,15 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				type: 'number',
 				min: 1,
 				max: 7,
-				default: 1
-			}
+				default: 1,
+			},
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
 
 			const cameraId = parseInt(String(opt.CameraId))
 			await instance.xapi?.Command.Camera.TriggerAutofocus({ CameraId: cameraId })
-		}
+		},
 	}
 	actions[ActionId.CameraRamp] = {
 		name: 'Set camera ramp',
@@ -681,7 +681,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				min: 1,
 				max: 7,
 				default: 1,
-				id: 'CameraId'
+				id: 'CameraId',
 			},
 			{
 				label: 'Pan',
@@ -689,10 +689,10 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				choices: [
 					{ label: 'Left', id: 'Left' },
 					{ label: 'Right', id: 'Right' },
-					{ label: 'Stop', id: 'Stop' }
+					{ label: 'Stop', id: 'Stop' },
 				],
 				default: 'Stop',
-				id: 'Pan'
+				id: 'Pan',
 			},
 			{
 				label: 'PanSpeed',
@@ -700,7 +700,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				min: 0,
 				max: 15,
 				default: 0,
-				id: 'PanSpeed'
+				id: 'PanSpeed',
 			},
 			{
 				label: 'Tilt',
@@ -708,10 +708,10 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				choices: [
 					{ label: 'Down', id: 'Down' },
 					{ label: 'Up', id: 'Up' },
-					{ label: 'Stop', id: 'Stop' }
+					{ label: 'Stop', id: 'Stop' },
 				],
 				default: 'Stop',
-				id: 'Tilt'
+				id: 'Tilt',
 			},
 			{
 				label: 'TiltSpeed',
@@ -719,7 +719,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				min: 0,
 				max: 15,
 				default: 0,
-				id: 'TiltSpeed'
+				id: 'TiltSpeed',
 			},
 			{
 				label: 'Zoom',
@@ -727,10 +727,10 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				choices: [
 					{ label: 'In', id: 'In' },
 					{ label: 'Out', id: 'Out' },
-					{ label: 'Stop', id: 'Stop' }
+					{ label: 'Stop', id: 'Stop' },
 				],
 				default: 'Stop',
-				id: 'Zoom'
+				id: 'Zoom',
 			},
 			{
 				label: 'ZoomSpeed',
@@ -738,7 +738,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				min: 0,
 				max: 15,
 				default: 0,
-				id: 'ZoomSpeed'
+				id: 'ZoomSpeed',
 			},
 			{
 				label: 'Focus',
@@ -746,11 +746,11 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				choices: [
 					{ label: 'Far', id: 'Far' },
 					{ label: 'Near', id: 'Near' },
-					{ label: 'Stop', id: 'Stop' }
+					{ label: 'Stop', id: 'Stop' },
 				],
 				default: 'Stop',
-				id: 'Focus'
-			}
+				id: 'Focus',
+			},
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
@@ -767,9 +767,9 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				TiltSpeed: tiltSpeed,
 				Zoom: opt.Zoom,
 				ZoomSpeed: zoomSpeed,
-				Focus: opt.Focus
+				Focus: opt.Focus,
 			})
-		}
+		},
 	}
 	actions[ActionId.DTMFSend] = {
 		name: 'DTMF Send',
@@ -780,14 +780,14 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				type: 'number',
 				min: 0,
 				max: 65534,
-				default: 0
+				default: 0,
 			},
 			{
 				label: 'DTMFString',
 				id: 'DTMFString',
 				type: 'textinput',
-				default: ''
-			}
+				default: '',
+			},
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
@@ -795,9 +795,9 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 			const callId = parseInt(String(opt.CallId))
 			await instance.xapi?.Command.Call.DTMFSend({
 				CallId: callId,
-				DTMFString: opt.DTMFString
+				DTMFString: opt.DTMFString,
 			})
-		}
+		},
 	}
 	actions[ActionId.ConferenceDoNotDisturbActivate] = {
 		name: 'Conference Do Not Disturb Activate',
@@ -808,24 +808,24 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				type: 'number',
 				min: 1,
 				max: 1440,
-				default: 1
-			}
+				default: 1,
+			},
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
 
 			const timeout = parseInt(String(opt.Timeout))
 			await instance.xapi?.Command.Conference.DoNotDisturb.Activate({
-				Timeout: timeout
+				Timeout: timeout,
 			})
-		}
+		},
 	}
 	actions[ActionId.ConferenceDoNotDisturbDeActivate] = {
 		name: 'Conference Do Not Disturb deactivate',
 		options: [],
 		callback: async (): Promise<void> => {
 			await instance.xapi?.Command.Conference.DoNotDisturb.Deactivate()
-		}
+		},
 	}
 	actions[ActionId.SelfView] = {
 		name: 'Video: Self view',
@@ -840,9 +840,9 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 					{ id: 'LowerLeft', label: 'LowerLeft' },
 					{ id: 'LowerRight', label: 'LowerRight' },
 					{ id: 'UpperLeft', label: 'UpperLeft' },
-					{ id: 'UpperRight', label: 'UpperRight' }
+					{ id: 'UpperRight', label: 'UpperRight' },
 				],
-				default: 'LowerLeft'
+				default: 'LowerLeft',
 			},
 			{
 				label: 'OnMonitorRole',
@@ -851,10 +851,10 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				choices: [
 					{ id: 'First', label: 'First' },
 					{ id: 'Second', label: 'Second' },
-					{ id: 'Third', label: 'Third' }
+					{ id: 'Third', label: 'Third' },
 				],
-				default: 'First'
-			}
+				default: 'First',
+			},
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
@@ -863,9 +863,9 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				Mode: opt.Mode,
 				FullscreenMode: opt.FullscreenMode,
 				PIPPosition: opt.PIPPosition,
-				OnMonitorRole: opt.OnMonitorRole
+				OnMonitorRole: opt.OnMonitorRole,
 			})
-		}
+		},
 	}
 	actions[ActionId.OSDKeyClick] = {
 		name: 'OSD Key Click',
@@ -874,9 +874,9 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 			const opt = action.options
 
 			await instance.xapi?.Command.UserInterface.OSD.Key.Click({
-				Key: opt.Key
+				Key: opt.Key,
 			})
-		}
+		},
 	}
 	actions[ActionId.OSDKeyPress] = {
 		name: 'OSD Key Press',
@@ -885,9 +885,9 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 			const opt = action.options
 
 			await instance.xapi?.Command.UserInterface.OSD.Key.Press({
-				Key: opt.Key
+				Key: opt.Key,
 			})
-		}
+		},
 	}
 	actions[ActionId.OSDKeyRelease] = {
 		name: 'OSD Key Release',
@@ -896,9 +896,9 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 			const opt = action.options
 
 			await instance.xapi?.Command.UserInterface.OSD.Key.Release({
-				Key: opt.Key
+				Key: opt.Key,
 			})
-		}
+		},
 	}
 	actions[ActionId.CameraBackground] = {
 		name: 'Set Camera background',
@@ -917,9 +917,9 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 					{ id: 'Image7', label: 'Image7' },
 					{ id: 'User1', label: 'User1' },
 					{ id: 'User2', label: 'User2' },
-					{ id: 'User3', label: 'User3' }
+					{ id: 'User3', label: 'User3' },
 				],
-				default: 'Image1'
+				default: 'Image1',
 			},
 			{
 				label: 'Mode',
@@ -933,19 +933,19 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 					{ id: 'Hdmi', label: 'Hdmi' },
 					{ id: 'Monochrome', label: 'Monochrome' },
 					{ id: 'Image', label: 'Image' },
-					{ id: 'UsbC', label: 'UsbC' }
+					{ id: 'UsbC', label: 'UsbC' },
 				],
-				default: 'Image'
-			}
+				default: 'Image',
+			},
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
 
 			await instance.xapi?.Command.Cameras.Background.Set({
 				Image: opt.Image,
-				Mode: opt.Mode
+				Mode: opt.Mode,
 			})
-		}
+		},
 	}
 	actions[ActionId.VideoMonitors] = {
 		name: 'Monitor role',
@@ -960,16 +960,16 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 					{ id: 'Dual', label: 'Dual' },
 					{ id: 'DualPresentationOnly', label: 'DualPresentationOnly' },
 					{ id: 'TriplePresentationOnly', label: 'TriplePresentationOnly' },
-					{ id: 'Triple', label: 'Triple' }
+					{ id: 'Triple', label: 'Triple' },
 				],
-				default: 'Auto'
-			}
+				default: 'Auto',
+			},
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
 
 			await instance.xapi?.Config.Video.Monitors.set(opt.Monitors)
-		}
+		},
 	}
 	actions[ActionId.VideoOutputMonitorRole] = {
 		name: 'Set output connector monitor role',
@@ -980,7 +980,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				default: 1,
 				type: 'number',
 				min: 1,
-				max: 3
+				max: 3,
 			},
 			{
 				label: 'MonitorRole',
@@ -992,17 +992,17 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 					{ id: 'Second', label: 'Second' },
 					{ id: 'Third', label: 'Third' },
 					{ id: 'PresentationOnly', label: 'PresentationOnly' },
-					{ id: 'Recorder', label: 'Recorder' }
+					{ id: 'Recorder', label: 'Recorder' },
 				],
-				default: 'Auto'
-			}
+				default: 'Auto',
+			},
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
 
 			const connector = parseInt(String(opt.Connector))
 			await instance.xapi?.Config.Video.Output.Connector[connector].MonitorRole.set(opt.MonitorRole)
-		}
+		},
 	}
 	actions[ActionId.MessageSend] = {
 		name: 'Send message to any listening client',
@@ -1011,16 +1011,16 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				label: 'Text',
 				type: 'textinput',
 				id: 'Text',
-				default: ''
-			}
+				default: '',
+			},
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
 
 			await instance.xapi?.Command.Message.Send({
-				Text: opt.Text
+				Text: opt.Text,
 			})
-		}
+		},
 	}
 	actions[ActionId.StandbyControl] = {
 		name: 'Device standby',
@@ -1029,7 +1029,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 			const opt = action.options
 
 			await instance.xapi?.Config.Standby.Control.set(opt.Standby)
-		}
+		},
 	}
 	actions[ActionId.StandbyControl] = {
 		name: 'Set Standby Delay',
@@ -1040,15 +1040,15 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				min: 1,
 				max: 480,
 				id: 'Delay',
-				default: 10
-			}
+				default: 10,
+			},
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
 
 			const delay = parseInt(String(opt.Delay))
 			await instance.xapi?.Config.Standby.Delay.set(delay)
-		}
+		},
 	}
 	return actions
 }

@@ -4,17 +4,17 @@ import {
 	CompanionFeedbackDefinitions,
 	CompanionInputFieldColor,
 	CompanionVariableValues,
-	combineRgb
+	combineRgb,
 } from '@companion-module/base'
-import { DeviceConfig } from './config'
-import { WebexCall, WebexInstanceSkel, WebexOnOffBoolean, WebexBoolean } from './webex'
+import { DeviceConfig } from './config.js'
+import { WebexCall, WebexInstanceSkel, WebexOnOffBoolean, WebexBoolean } from './webex.js'
 
 export enum FeedbackId {
 	Ringing = 'ringing',
 	HasIngoingCall = 'hasingoingcall',
 	HasOutgoingCall = 'hasoutgoingcall',
 	AutoAnswer = 'autoanswer',
-	MicrophoneMute = 'microphonemute'
+	MicrophoneMute = 'microphonemute',
 }
 
 export function ForegroundPicker(color: number): CompanionInputFieldColor {
@@ -22,7 +22,7 @@ export function ForegroundPicker(color: number): CompanionInputFieldColor {
 		type: 'colorpicker',
 		label: 'Foreground color',
 		id: 'fg',
-		default: color
+		default: color,
 	}
 }
 export function BackgroundPicker(color: number): CompanionInputFieldColor {
@@ -30,7 +30,7 @@ export function BackgroundPicker(color: number): CompanionInputFieldColor {
 		type: 'colorpicker',
 		label: 'Background color',
 		id: 'bg',
-		default: color
+		default: color,
 	}
 }
 export function HandleXAPICall(instance: WebexInstanceSkel<DeviceConfig>, call: WebexCall): void {
@@ -50,7 +50,7 @@ export function HandleXAPICall(instance: WebexInstanceSkel<DeviceConfig>, call: 
 	console.log('DEBUG: CALLS: ', instance.ongoingCalls)
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function HandleXAPIConfFeedback(instance: WebexInstanceSkel<DeviceConfig>, event: any): void {
 	console.log('WEBEX CONFIG: ', instance.id, event)
 
@@ -66,7 +66,7 @@ export function HandleXAPIConfFeedback(instance: WebexInstanceSkel<DeviceConfig>
 		}
 		instance.autoAnswerConfig = {
 			...instance.autoAnswerConfig,
-			...event.Conference?.AutoAnswer
+			...event.Conference?.AutoAnswer,
 		}
 		newValues['autoanswer_delay'] = instance.autoAnswerConfig.Delay
 
@@ -74,7 +74,7 @@ export function HandleXAPIConfFeedback(instance: WebexInstanceSkel<DeviceConfig>
 	}
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function HandleXAPIFeedback(instance: WebexInstanceSkel<DeviceConfig>, event: any): void {
 	// console.log('WEBEX EVENT: ', instance.id, event)
 
@@ -155,7 +155,7 @@ export function GetFeedbacksList(instance: WebexInstanceSkel<DeviceConfig>): Com
 
 	const getOptColors = (feedback: CompanionFeedbackAdvancedEvent): CompanionAdvancedFeedbackResult => ({
 		color: Number(feedback.options.fg),
-		bgcolor: Number(feedback.options.bg)
+		bgcolor: Number(feedback.options.bg),
 	})
 
 	feedbacks[FeedbackId.Ringing] = {
@@ -168,7 +168,7 @@ export function GetFeedbacksList(instance: WebexInstanceSkel<DeviceConfig>): Com
 				return getOptColors(feedback)
 			}
 			return {}
-		}
+		},
 	}
 
 	feedbacks[FeedbackId.HasIngoingCall] = {
@@ -181,7 +181,7 @@ export function GetFeedbacksList(instance: WebexInstanceSkel<DeviceConfig>): Com
 				return getOptColors(feedback)
 			}
 			return {}
-		}
+		},
 	}
 
 	feedbacks[FeedbackId.HasOutgoingCall] = {
@@ -194,7 +194,7 @@ export function GetFeedbacksList(instance: WebexInstanceSkel<DeviceConfig>): Com
 				return getOptColors(feedback)
 			}
 			return {}
-		}
+		},
 	}
 
 	feedbacks[FeedbackId.AutoAnswer] = {
@@ -207,7 +207,7 @@ export function GetFeedbacksList(instance: WebexInstanceSkel<DeviceConfig>): Com
 				return getOptColors(feedback)
 			}
 			return {}
-		}
+		},
 	}
 
 	feedbacks[FeedbackId.MicrophoneMute] = {
@@ -220,7 +220,7 @@ export function GetFeedbacksList(instance: WebexInstanceSkel<DeviceConfig>): Com
 				return getOptColors(feedback)
 			}
 			return {}
-		}
+		},
 	}
 
 	return feedbacks

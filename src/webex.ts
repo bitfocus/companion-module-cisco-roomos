@@ -9,13 +9,13 @@ interface Connector {
 
 export enum WebexBoolean {
 	True = 'True',
-	False = 'False'
+	False = 'False',
 }
 
 export enum WebexOnOffBoolean {
 	On = 'On',
 	Off = 'Off',
-	Unknown = ''
+	Unknown = '',
 }
 
 export interface WebexConfigAutoAnswer {
@@ -61,6 +61,6 @@ export abstract class WebexInstanceSkel<T> extends InstanceBase<T> {
 	public autoAnswerConfig: WebexConfigAutoAnswer = {
 		Delay: '',
 		Mode: WebexOnOffBoolean.Unknown,
-		Mute: WebexOnOffBoolean.Unknown
+		Mute: WebexOnOffBoolean.Unknown,
 	}
 }
