@@ -14,7 +14,8 @@
 		"build:main": "tsc",
 		"build:watch": "tsc --watch",
 		"lint:raw": "eslint --ext .ts --ext .js --ignore-pattern dist --ignore-pattern pkg",
-		"lint": "yarn lint:raw ."
+		"lint": "yarn lint:raw .",
+		"postinstall": "rimraf node_modules/ssh2/lib/protocol/crypto/build node_modules/cpu-features"
 	},
 	"lint-staged": {
 		"*.{js,json,md}": [
