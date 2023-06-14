@@ -1,4 +1,4 @@
-# companion-module-cisco-webex
+# companion-module-cisco-roomos
 
 See HELP.md and LICENSE
 

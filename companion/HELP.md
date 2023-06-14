@@ -1,4 +1,4 @@
-## Cisco Webex module
+## Cisco RoomOS module
 
 This module connects to Cisco Webex devices
 

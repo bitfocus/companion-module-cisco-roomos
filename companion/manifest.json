@@ -1,19 +1,19 @@
 {
-	"id": "cisco-webex",
-	"name": "cisco-webex",
-	"shortname": "Webex",
+	"id": "cisco-roomos",
+	"name": "cisco-roomos",
+	"shortname": "RoomOS",
 	"description": "See [HELP.md](./HELP.md) and [LICENSE](./LICENSE)",
 	"version": "0.0.0",
 	"license": "MIT",
-	"repository": "git+https://github.com/bitfocus/companion-module-cisco-webex.git",
-	"bugs": "https://github.com/bitfocus/companion-module-cisco-webex/issues",
+	"repository": "git+https://github.com/bitfocus/companion-module-cisco-roomos.git",
+	"bugs": "https://github.com/bitfocus/companion-module-cisco-roomos/issues",
 	"maintainers": [
 		{
 			"name": "Jeffrey Davidsz",
 			"email": "jeffrey.davidsz@vicreo.eu"
 		}
 	],
-	"legacyIds": ["cisco-webex-websocket"],
+	"legacyIds": ["cisco-webex-websocket", "cisco-webex"],
 	"runtime": {
 		"type": "node18",
 		"api": "nodejs-ipc",
@@ -21,6 +21,6 @@
 		"entrypoint": "../dist/index.js"
 	},
 	"manufacturer": "Cisco",
-	"products": ["Webex"],
+	"products": ["RoomOS"],
 	"keywords": ["Hardware"]
 }
