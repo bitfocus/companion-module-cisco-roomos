@@ -1,6 +1,6 @@
 ## Cisco RoomOS module
 
-This module connects to Cisco Webex devices
+This module connects to Cisco RoomOS devices
 
 ### Call actions
 

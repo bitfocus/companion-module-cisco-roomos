@@ -1,4 +1,4 @@
-import { WebexInstanceSkel, WebexOnOffBoolean, WebexConfigAutoAnswer } from './webex.js'
+import { RoomOSInstanceBase, RoomOSOnOffBoolean, RoomOSConfigAutoAnswer } from './roomos.js'
 import { connect as XAPIConnect } from 'jsxapi'
 import { GetActionsList } from './actions.js'
 import { DeviceConfig, GetConfigFields } from './config.js'
@@ -13,7 +13,7 @@ import {
 } from '@companion-module/base'
 import { UpgradeScripts } from './upgrades.js'
 
-class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
+class ControllerInstance extends RoomOSInstanceBase<DeviceConfig> {
 	private connected: boolean
 	private connecting: boolean
 	private timer?: NodeJS.Timer
@@ -72,7 +72,7 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 
 			this.xapi.on('error', (error) => {
 				this.updateStatus(InstanceStatus.ConnectionFailure)
-				this.log('error', 'Cisco Webex error: ' + error)
+				this.log('error', 'Cisco RoomOS error: ' + error)
 				this.xapi = undefined
 				this.connected = false
 				this.connecting = false
@@ -94,7 +94,7 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 							if (value?.Mute != null) newValues['autoanswer_mute'] = value.Mute
 							if (value?.Delay != null) newValues['autoanswer_delay'] = value.Delay
 							this.setVariableValues(newValues)
-							this.autoAnswerConfig = value as WebexConfigAutoAnswer
+							this.autoAnswerConfig = value as RoomOSConfigAutoAnswer
 						}
 					})
 					.catch((e) => {
@@ -160,7 +160,7 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 			this.xapi.feedback.on('Status', (event) => HandleXAPIFeedback(this, event))
 			this.xapi.feedback.on('Configuration', (event) => HandleXAPIConfFeedback(this, event))
 		} catch (e: any) {
-			this.log('error', 'Error connecting to webex device: ' + e.message)
+			this.log('error', 'Error connecting to RoomOS device: ' + e.message)
 			this.xapi = undefined
 			this.connected = false
 			this.connecting = true
@@ -181,8 +181,8 @@ class ControllerInstance extends WebexInstanceSkel<DeviceConfig> {
 		this.hasRingingCall = false
 		this.autoAnswerConfig = {
 			Delay: '',
-			Mode: WebexOnOffBoolean.Unknown,
-			Mute: WebexOnOffBoolean.Unknown,
+			Mode: RoomOSOnOffBoolean.Unknown,
+			Mute: RoomOSOnOffBoolean.Unknown,
 		}
 	}
 

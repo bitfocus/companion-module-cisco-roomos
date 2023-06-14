@@ -7,7 +7,7 @@ import {
 	combineRgb,
 } from '@companion-module/base'
 import { DeviceConfig } from './config.js'
-import { WebexCall, WebexInstanceSkel, WebexOnOffBoolean, WebexBoolean } from './webex.js'
+import { WebexCall, RoomOSInstanceBase, RoomOSOnOffBoolean, RoomOSBoolean } from './roomos.js'
 
 export enum FeedbackId {
 	Ringing = 'ringing',
@@ -33,8 +33,8 @@ export function BackgroundPicker(color: number): CompanionInputFieldColor {
 		default: color,
 	}
 }
-export function HandleXAPICall(instance: WebexInstanceSkel<DeviceConfig>, call: WebexCall): void {
-	if (call.ghost === WebexBoolean.True) {
+export function HandleXAPICall(instance: RoomOSInstanceBase<DeviceConfig>, call: WebexCall): void {
+	if (call.ghost === RoomOSBoolean.True) {
 		instance.ongoingCalls = instance.ongoingCalls.filter((existingCall) => existingCall.id !== call.id)
 	} else {
 		const existingCall = instance.ongoingCalls.find((existingCall) => existingCall.id === call.id)
@@ -51,8 +51,8 @@ export function HandleXAPICall(instance: WebexInstanceSkel<DeviceConfig>, call: 
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function HandleXAPIConfFeedback(instance: WebexInstanceSkel<DeviceConfig>, event: any): void {
-	console.log('WEBEX CONFIG: ', instance.id, event)
+export function HandleXAPIConfFeedback(instance: RoomOSInstanceBase<DeviceConfig>, event: any): void {
+	console.log('RoomOS CONFIG: ', instance.id, event)
 
 	if (event.Conference?.AutoAnswer) {
 		const newValues: CompanionVariableValues = {}
@@ -75,8 +75,8 @@ export function HandleXAPIConfFeedback(instance: WebexInstanceSkel<DeviceConfig>
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function HandleXAPIFeedback(instance: WebexInstanceSkel<DeviceConfig>, event: any): void {
-	// console.log('WEBEX EVENT: ', instance.id, event)
+export function HandleXAPIFeedback(instance: RoomOSInstanceBase<DeviceConfig>, event: any): void {
+	// console.log('RoomOS EVENT: ', instance.id, event)
 
 	const newValues: CompanionVariableValues = {}
 	const checkFeedbacks: FeedbackId[] = []
@@ -150,7 +150,7 @@ export function HandleXAPIFeedback(instance: WebexInstanceSkel<DeviceConfig>, ev
 	if (checkFeedbacks.length) instance.checkFeedbacks(...checkFeedbacks)
 }
 
-export function GetFeedbacksList(instance: WebexInstanceSkel<DeviceConfig>): CompanionFeedbackDefinitions {
+export function GetFeedbacksList(instance: RoomOSInstanceBase<DeviceConfig>): CompanionFeedbackDefinitions {
 	const feedbacks: CompanionFeedbackDefinitions = {}
 
 	const getOptColors = (feedback: CompanionFeedbackAdvancedEvent): CompanionAdvancedFeedbackResult => ({
@@ -203,7 +203,7 @@ export function GetFeedbacksList(instance: WebexInstanceSkel<DeviceConfig>): Com
 		description: 'If the device is set to auto-answer, change colors of the bank',
 		options: [ForegroundPicker(combineRgb(0, 0, 0)), BackgroundPicker(combineRgb(255, 255, 255))],
 		callback: (feedback): CompanionAdvancedFeedbackResult => {
-			if (instance.autoAnswerConfig.Mode === WebexOnOffBoolean.On) {
+			if (instance.autoAnswerConfig.Mode === RoomOSOnOffBoolean.On) {
 				return getOptColors(feedback)
 			}
 			return {}

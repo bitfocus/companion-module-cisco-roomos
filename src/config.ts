@@ -14,7 +14,7 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 			id: 'info',
 			width: 12,
 			label: 'Note',
-			value: 'This module is for connecting to Cisco Webex hardware like DX80 or Codec Pro K7, etc.',
+			value: 'This module is for connecting to Cisco RoomOS hardware like DX80 or Codec Pro K7, etc.',
 		},
 		{
 			type: 'textinput',

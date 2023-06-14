@@ -1,4 +1,4 @@
-import { WebexInstanceSkel } from './webex.js'
+import { RoomOSInstanceBase } from './roomos.js'
 import { DeviceConfig } from './config.js'
 import {
 	CompanionActionDefinitions,
@@ -44,7 +44,7 @@ export enum ActionId {
 	StandbyDelay = 'standby_control',
 }
 
-function WebexOnOffBooleanDropdown(id: string, label: string): CompanionInputFieldDropdown {
+function RoomOSOnOffBooleanDropdown(id: string, label: string): CompanionInputFieldDropdown {
 	return {
 		id,
 		label,
@@ -137,7 +137,7 @@ function SourceIdNumber(): CompanionInputFieldNumber {
 	}
 }
 
-export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): CompanionActionDefinitions {
+export function GetActionsList(instance: RoomOSInstanceBase<DeviceConfig>): CompanionActionDefinitions {
 	const actions: CompanionActionDefinitions = {}
 
 	actions[ActionId.CustomConfiguration] = {
@@ -187,7 +187,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 
 			await instance.xapi
 				?.command(`'${opt.Method}'`, JSON.parse(String(opt.Params)))
-				.catch((e: any) => instance.log('warn', `Webex: Dial failed: ${e.message}`))
+				.catch((e: any) => instance.log('warn', `RoomOS: Dial failed: ${e.message}`))
 		},
 	}
 	actions[ActionId.Dial] = {
@@ -205,7 +205,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 			const opt = action.options
 
 			await instance.xapi?.Command.dial({ Number: opt.number }).catch((e: unknown) =>
-				instance.log('warn', `Webex: Dial failed: ${e}`)
+				instance.log('warn', `RoomOS: Dial failed: ${e}`)
 			)
 		},
 	}
@@ -226,7 +226,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 
 			const callId = parseInt(String(opt.CallId))
 			await instance.xapi?.Command.Call.disconnect({ CallId: callId }).catch((e: unknown) =>
-				instance.log('warn', `Webex: Dial failed: ${e}`)
+				instance.log('warn', `RoomOS: Dial failed: ${e}`)
 			)
 		},
 	}
@@ -239,7 +239,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 	}
 	actions[ActionId.AutoAnswerMode] = {
 		name: 'Call: Configure auto-answer mode',
-		options: [WebexOnOffBooleanDropdown('Mode', 'Mode')],
+		options: [RoomOSOnOffBooleanDropdown('Mode', 'Mode')],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
 
@@ -248,7 +248,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 	}
 	actions[ActionId.AutoAnswerMute] = {
 		name: 'Call: Configure auto-answer mute',
-		options: [WebexOnOffBooleanDropdown('Mute', 'Mute')],
+		options: [RoomOSOnOffBooleanDropdown('Mute', 'Mute')],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
 
@@ -294,7 +294,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 	}
 	actions[ActionId.MicrophoneMute] = {
 		name: 'Audio: Microphones Mute',
-		options: [WebexOnOffBooleanDropdown('Mute', 'Mute')],
+		options: [RoomOSOnOffBooleanDropdown('Mute', 'Mute')],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
 
@@ -315,7 +315,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 	// }
 	actions[ActionId.MusicMode] = {
 		name: 'Audio: Microphones Music Mode',
-		options: [WebexOnOffBooleanDropdown('MusicMode', 'MusicMode')],
+		options: [RoomOSOnOffBooleanDropdown('MusicMode', 'MusicMode')],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
 
@@ -337,7 +337,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 				max: 8,
 				default: 1,
 			},
-			WebexOnOffBooleanDropdown('NoiseRemoval', 'NoiseRemoval'),
+			RoomOSOnOffBooleanDropdown('NoiseRemoval', 'NoiseRemoval'),
 		],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
@@ -830,8 +830,8 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 	actions[ActionId.SelfView] = {
 		name: 'Video: Self view',
 		options: [
-			WebexOnOffBooleanDropdown('Mode', 'Mode'),
-			WebexOnOffBooleanDropdown('FullscreenMode', 'FullscreenMode'),
+			RoomOSOnOffBooleanDropdown('Mode', 'Mode'),
+			RoomOSOnOffBooleanDropdown('FullscreenMode', 'FullscreenMode'),
 			{
 				label: 'PIP Position',
 				id: 'PIPPosition',
@@ -1024,7 +1024,7 @@ export function GetActionsList(instance: WebexInstanceSkel<DeviceConfig>): Compa
 	}
 	actions[ActionId.StandbyControl] = {
 		name: 'Device standby',
-		options: [WebexOnOffBooleanDropdown('Standby', 'Standby')],
+		options: [RoomOSOnOffBooleanDropdown('Standby', 'Standby')],
 		callback: async (action): Promise<void> => {
 			const opt = action.options
 

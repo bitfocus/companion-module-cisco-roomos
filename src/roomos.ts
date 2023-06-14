@@ -7,21 +7,21 @@ interface Connector {
 	Mute: string
 }
 
-export enum WebexBoolean {
+export enum RoomOSBoolean {
 	True = 'True',
 	False = 'False',
 }
 
-export enum WebexOnOffBoolean {
+export enum RoomOSOnOffBoolean {
 	On = 'On',
 	Off = 'Off',
 	Unknown = '',
 }
 
-export interface WebexConfigAutoAnswer {
+export interface RoomOSConfigAutoAnswer {
 	Delay: string
-	Mode: WebexOnOffBoolean
-	Mute: WebexOnOffBoolean
+	Mode: RoomOSOnOffBoolean
+	Mute: RoomOSOnOffBoolean
 }
 
 export interface WebexMessage {
@@ -38,17 +38,17 @@ export interface WebexCall {
 	DisplayName: string
 	Duration: string
 	Encryption: unknown
-	PlacedOnHold?: WebexBoolean
+	PlacedOnHold?: RoomOSBoolean
 	Protocol: string
 	ReceiveCallRate: string
 	RemoteNumber: string
 	Status: 'Dialling' | 'Connected' | 'Ringing'
 	TransmitCallRate: string
-	ghost?: WebexBoolean
+	ghost?: RoomOSBoolean
 	Ice: string
 }
 
-export abstract class WebexInstanceSkel<T> extends InstanceBase<T> {
+export abstract class RoomOSInstanceBase<T> extends InstanceBase<T> {
 	public websocket?: WebSocket
 	public xapi?: XAPI
 	public CallId!: string
@@ -58,9 +58,9 @@ export abstract class WebexInstanceSkel<T> extends InstanceBase<T> {
 	public hasRingingCall = false
 	public hasOutgoingCall = false
 	public microphoneMute = false
-	public autoAnswerConfig: WebexConfigAutoAnswer = {
+	public autoAnswerConfig: RoomOSConfigAutoAnswer = {
 		Delay: '',
-		Mode: WebexOnOffBoolean.Unknown,
-		Mute: WebexOnOffBoolean.Unknown,
+		Mode: RoomOSOnOffBoolean.Unknown,
+		Mute: RoomOSOnOffBoolean.Unknown,
 	}
 }
