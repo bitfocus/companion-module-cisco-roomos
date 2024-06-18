@@ -29,7 +29,7 @@
 	"dependencies": {
 		"@companion-module/base": "~1.4.1",
 		"jsxapi": "^5.1.1",
-		"ws": "^8.13.0"
+		"ws": "^8.17.1"
 	},
 	"devDependencies": {
 		"@companion-module/tools": "^1.3.1",
